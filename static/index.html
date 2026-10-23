@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Later</title>
+<style>
+  :root { --bg:#F2F2EB; --card:#fff; --ink:#231F20; --muted:#6b6b66; --accent:#3D5F58; --on-accent:#fff; --warn:#E97B77; --line:#e3e3da; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1b1d1c; --card:#262928; --ink:#f2f2eb; --muted:#a4a8a3; --accent:#8BB2DE; --on-accent:#16212b; --warn:#E97B77; --line:#353836; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui, sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { margin:0; font-size:2rem; } .sub { color:var(--muted); margin:4px 0 24px; }
+  .actions { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .btn { display:flex; flex-direction:column; align-items:center; gap:6px; padding:18px 8px; border-radius:16px; border:1px solid var(--line);
+         background:var(--card); color:var(--ink); font:inherit; font-weight:600; cursor:pointer; }
+  .btn span { font-size:1.8rem; } .btn.rec { border-color:var(--warn); color:var(--warn); }
+  textarea { width:100%; margin-top:12px; min-height:80px; padding:12px; border-radius:12px; border:1px solid var(--line); background:var(--card); color:var(--ink); font:inherit; }
+  .send { margin-top:8px; width:100%; padding:12px; border:0; border-radius:12px; background:var(--accent); color:var(--on-accent); font:inherit; font-weight:600; }
+  #status { min-height:1.5em; margin:14px 0; color:var(--muted); }
+  h2 { font-size:1rem; margin:28px 0 10px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+  .item { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:10px; }
+  .item b { display:block; } .meta { color:var(--muted); font-size:.9rem; } .ask { color:var(--warn); font-size:.9rem; }
+  .row { display:flex; gap:8px; margin-top:10px; } .row button { flex:1; padding:8px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--ink); font:inherit; }
+  .done { opacity:.5; } input[type=file] { display:none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Later 🦥</h1>
+  <p class="sub">Snap it, say it or paste it. Later works out the last sensible moment and stays quiet until then.</p>
+
+  <div class="actions">
+    <label class="btn" for="photo"><span>📷</span>Snap</label>
+    <button class="btn" id="say"><span>🎙</span>Say</button>
+    <button class="btn" id="paste"><span>✍️</span>Paste</button>
+  </div>
+  <input type="file" id="photo" accept="image/*" capture="environment">
+  <div id="pastebox" hidden>
+    <textarea id="text" placeholder="e.g. Dentist said come back in 6 months"></textarea>
+    <button class="send" id="sendtext">Remember this</button>
+  </div>
+  <div id="status" role="status"></div>
+
+  <h2>Later will remind you</h2>
+  <div id="items"></div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt = (iso) => new Date(iso).toLocaleString("en-IE", { weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit", timeZone:"Europe/Dublin" });
+
+async function send(form, label) {
+  $("status").textContent = label;
+  try {
+    const r = await fetch("/capture", { method:"POST", body:form });
+    if (!r.ok) throw new Error((await r.json()).detail || r.status);
+    const it = await r.json();
+    $("status").textContent = it.resolved ? `Got it. I'll remind you ${fmt(it.resolved.remind_at)}.` : "I couldn't find a date in that. Try adding one.";
+    load();
+  } catch (e) { $("status").textContent = "Something went wrong: " + e.message; }
+}
+
+$("photo").onchange = (e) => { const f = new FormData(); f.append("image", e.target.files[0]); send(f, "Reading your photo…"); e.target.value = ""; };
+$("paste").onclick = () => { $("pastebox").hidden = !$("pastebox").hidden; $("text").focus(); };
+$("sendtext").onclick = () => { const f = new FormData(); f.append("text", $("text").value); $("text").value = ""; send(f, "Reading…"); };
+
+let rec, chunks = [];
+$("say").onclick = async () => {
+  if (rec && rec.state === "recording") { rec.stop(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+    rec = new MediaRecorder(stream); chunks = [];
+    rec.ondataavailable = (e) => chunks.push(e.data);
+    rec.onstop = () => {
+      stream.getTracks().forEach(t => t.stop()); $("say").classList.remove("rec");
+      const f = new FormData(); f.append("audio", new Blob(chunks, { type: rec.mimeType }), "voice.webm");
+      send(f, "Listening back…");
+    };
+    rec.start(); $("say").classList.add("rec"); $("status").textContent = "Recording… tap Say again to stop.";
+  } catch { $("status").textContent = "No microphone available."; }
+};
+
+async function act(id, path) { await fetch(`/items/${id}/${path}`, { method:"POST" }); load(); }
+
+async function load() {
+  const items = await (await fetch("/items")).json();
+  $("items").innerHTML = "";
+  for (const it of items) {
+    const el = document.createElement("div");
+    el.className = "item" + (["done","cancelled"].includes(it.status) ? " done" : "");
+    const title = it.facts ? it.facts.title : (it.raw_text || "Photo");
+    const line = it.resolved
+      ? `<div class="meta">Due ${fmt(it.resolved.due_at)} · reminder ${fmt(it.resolved.remind_at)} · ${it.status}</div>`
+      : `<div class="ask">No date found. Capture it again with a date.</div>`;
+    el.innerHTML = `<b></b><div class="meta action"></div>${line}`;
+    el.querySelector("b").textContent = title;
+    el.querySelector(".action").textContent = it.facts ? it.facts.action : "";
+    if (it.resolved && !["done","cancelled"].includes(it.status)) {
+      const row = document.createElement("div"); row.className = "row";
+      for (const [label, path] of [["Done","done"],["Snooze 3 days","snooze?days=3"],["Forget it","cancel"]]) {
+        const b = document.createElement("button"); b.textContent = label; b.onclick = () => act(it.id, path); row.append(b);
+      }
+      el.append(row);
+    }
+    $("items").append(el);
+  }
+}
+load();
+</script>
+</body>
+</html>
