@@ -40,6 +40,13 @@ def _due(facts: Facts, captured_at: datetime) -> datetime | None:
 
 
 def resolve(facts: Facts, captured_at: datetime) -> Resolved | None:
+    try:
+        return _resolve(facts, captured_at)
+    except (OverflowError, ValueError):  # e.g. a date past year 9999
+        return None
+
+
+def _resolve(facts: Facts, captured_at: datetime) -> Resolved | None:
     due_at = _due(facts, captured_at)
     if due_at is None:
         return None

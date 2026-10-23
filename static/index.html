@@ -89,8 +89,10 @@ async function load() {
     const el = document.createElement("div");
     el.className = "item" + (["done","cancelled"].includes(it.status) ? " done" : "");
     const title = it.facts ? it.facts.title : (it.raw_text || "Photo");
-    const line = it.resolved
-      ? `<div class="meta">Due ${fmt(it.resolved.due_at)} · reminder ${fmt(it.resolved.remind_at)} · ${it.status}</div>`
+    const line = it.status === "failed"
+      ? `<div class="ask">Couldn't set the reminder. Capture it again in a minute.</div>`
+      : it.resolved
+      ?`<div class="meta">Due ${fmt(it.resolved.due_at)} · reminder ${fmt(it.resolved.remind_at)} · ${it.status}</div>`
       : `<div class="ask">No date found. Capture it again with a date.</div>`;
     el.innerHTML = `<b></b><div class="meta action"></div>${line}`;
     el.querySelector("b").textContent = title;

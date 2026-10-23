@@ -46,3 +46,7 @@ def test_nothing_to_resolve_returns_none():
 def test_results_are_utc():
     r = resolve(facts(kind="bill", explicit_due=date(2026, 10, 28)), CAPTURED)
     assert r.due_at.utcoffset() == timedelta(0) and r.remind_at.utcoffset() == timedelta(0)
+
+
+def test_absurd_window_is_unresolvable_not_a_crash():
+    assert resolve(facts(kind="other", window_days=3650, anchor_date=date(9999, 6, 1)), CAPTURED) is None

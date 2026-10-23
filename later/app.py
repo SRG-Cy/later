@@ -2,14 +2,15 @@
 
 import os
 from contextlib import asynccontextmanager
-from datetime import timedelta
+from datetime import UTC, timedelta
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 
 from later.models import Item
 from later.pipeline import Deps, process_capture
+from later.resolve import DUBLIN
 
 INDEX = Path(__file__).resolve().parent.parent / "static" / "index.html"
 
@@ -62,7 +63,10 @@ def create_app(deps: Deps | None = None) -> FastAPI:
                       audio: UploadFile | None = File(None)) -> Item:
         d = app.state.deps
         if audio is not None:
-            heard = await d.transcribe(await audio.read(), audio.content_type or "audio/webm")
+            try:
+                heard = await d.transcribe(await audio.read(), audio.content_type or "audio/webm")
+            except Exception:
+                raise HTTPException(502, "Couldn't hear that voice note. Try again or type it instead.")
             return await process_capture("voice", heard, None, d)
         if image is not None:
             return await process_capture("photo", text, await image.read(), d)
@@ -89,15 +93,17 @@ def create_app(deps: Deps | None = None) -> FastAPI:
         return await finish(id, "cancelled", "cancel")
 
     @app.post("/items/{id}/snooze")
-    async def snooze(id: str, days: int = 3) -> Item:
+    async def snooze(id: str, days: int = Query(3, ge=1, le=90)) -> Item:
         d = app.state.deps
         item = await find(id)
         if item.resolved is None:
             raise HTTPException(409, "Nothing scheduled to snooze")
-        if await d.signal(id, "snooze", days):
-            remind_at = item.resolved.remind_at + timedelta(days=days)
-        else:  # the push already went out, so that workflow is finished: start a new one
-            remind_at = d.now() + timedelta(days=days)
+        # Add calendar days in Irish local time so 09:00 stays 09:00 across a clock change.
+        later_by = lambda t: (t.astimezone(DUBLIN) + timedelta(days=days)).astimezone(UTC)
+        remind_at = later_by(item.resolved.remind_at)
+        if not await d.signal(id, "snooze", remind_at.isoformat()):
+            # The push already went out, so that workflow is finished: start a new one.
+            remind_at = later_by(d.now())
             await d.start(id, remind_at)
         resolved = item.resolved.model_copy(update={"remind_at": remind_at})
         await d.store.update(item.model_copy(update={"resolved": resolved, "status": "snoozed"}))

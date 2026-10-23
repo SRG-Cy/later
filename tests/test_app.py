@@ -131,3 +131,66 @@ def test_list_items_and_index_page():
     assert len(client.get("/items").json()) == 1
     page = client.get("/")
     assert page.status_code == 200 and "Later" in page.text
+
+
+# --- final review fixes ---
+
+def test_snooze_keeps_local_time_across_clock_change():
+    # remind_at is "now" (late bill): 12:00 Irish Summer Time on Oct 23; +3 days is Oct 26, after clocks go back
+    rec = Recorder(extracted=facts(kind="bill", explicit_due=date(2026, 10, 26)))
+    client, _ = make(rec)
+    item_id = client.post("/capture", data={"text": "bill"}).json()["id"]
+    body = client.post(f"/items/{item_id}/snooze?days=3").json()
+    from tests.helpers import dublin
+    from datetime import datetime
+    assert datetime.fromisoformat(body["resolved"]["remind_at"]) == dublin(2026, 10, 26, 12, 0)
+    assert rec.signals[-1] == (item_id, "snooze", dublin(2026, 10, 26, 12, 0).isoformat())
+
+
+@pytest.mark.parametrize("days", [0, -1, 91, 1000000000])
+def test_snooze_days_out_of_range_rejected(days):
+    rec = Recorder(extracted=facts(kind="bill", explicit_due=date(2026, 11, 2)))
+    client, _ = make(rec)
+    item_id = client.post("/capture", data={"text": "bill"}).json()["id"]
+    assert client.post(f"/items/{item_id}/snooze?days={days}").status_code == 422
+
+
+def test_reminder_start_failure_keeps_item_as_failed():
+    rec = Recorder(extracted=facts(kind="bill", explicit_due=date(2026, 11, 2)))
+    client, store = make(rec)
+
+    async def boom(*a):
+        raise RuntimeError("temporal down")
+    client.app.state.deps.start = boom
+    r = client.post("/capture", data={"text": "bill"})
+    assert r.status_code == 200 and r.json()["status"] == "failed"
+
+
+def test_model_outage_keeps_capture_as_needs_info():
+    rec = Recorder()
+    client, _ = make(rec)
+
+    async def boom(*a):
+        raise RuntimeError("DO down")
+    client.app.state.deps.extract = boom
+    body = client.post("/capture", data={"text": "dentist in 6 months"}).json()
+    assert body["status"] == "needs_info" and body["raw_text"] == "dentist in 6 months"
+
+
+def test_policy_lookup_outage_does_not_crash():
+    rec = Recorder(extracted=facts(kind="return_window", org="Boots", anchor_date=date(2026, 10, 20)))
+    client, _ = make(rec)
+
+    async def boom(*a):
+        raise RuntimeError("serpapi down")
+    client.app.state.deps.lookup_days = boom
+    assert client.post("/capture", data={"text": "Boots"}).json()["status"] == "needs_info"
+
+
+def test_voice_outage_is_502():
+    client, _ = make(Recorder())
+
+    async def boom(*a):
+        raise RuntimeError("elevenlabs down")
+    client.app.state.deps.transcribe = boom
+    assert client.post("/capture", files={"audio": ("v.webm", b"x", "audio/webm")}).status_code == 502

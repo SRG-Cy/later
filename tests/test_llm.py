@@ -74,3 +74,18 @@ async def test_read_return_policy_days():
 async def test_read_return_policy_unknown_is_none():
     c = FakeLLM('{"days": null}')
     assert await read_return_policy("Boots", ["Opening hours"], client=c) is None
+
+
+@pytest.mark.parametrize("bad", ["[]", "null", '"text"'])
+async def test_non_object_json_retries_then_none(bad):
+    assert await extract_facts("x", None, TODAY, client=FakeLLM(bad, bad)) is None
+
+
+async def test_huge_window_rejected():
+    big = reply(window_days=10**7)
+    assert await extract_facts("x", None, TODAY, client=FakeLLM(big, big)) is None
+
+
+@pytest.mark.parametrize("raw", ['{"days": true}', '{"days": 100000}', "[]"])
+async def test_read_return_policy_rejects_nonsense(raw):
+    assert await read_return_policy("Boots", ["x"], client=FakeLLM(raw)) is None

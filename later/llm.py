@@ -35,6 +35,8 @@ def _user_message(text: str | None, image: bytes | None) -> dict:
 
 def _clean(raw: str) -> dict:
     data = json.loads(raw)
+    if not isinstance(data, dict):
+        raise ValueError("expected a JSON object")
     # A bare YYYY-MM-DD must stay a date, not become a midnight datetime.
     due = data.get("explicit_due")
     if isinstance(due, str) and len(due) == 10:
@@ -71,7 +73,9 @@ async def read_return_policy(org: str, snippets: list[str], client: AsyncOpenAI 
     messages = [{"role": "system", "content": POLICY_SYSTEM},
                 {"role": "user", "content": f"Shop: {org}\n\n" + "\n".join(f"- {s}" for s in snippets)}]
     try:
-        days = json.loads(await _complete(client, os.environ["LLM_MODEL"], messages)).get("days")
+        data = json.loads(await _complete(client, os.environ["LLM_MODEL"], messages))
     except ValueError:
         return None
-    return days if isinstance(days, int) and days > 0 else None
+    days = data.get("days") if isinstance(data, dict) else None
+    ok = isinstance(days, int) and not isinstance(days, bool) and 1 <= days <= 365
+    return days if ok else None

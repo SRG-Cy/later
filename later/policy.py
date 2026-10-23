@@ -18,9 +18,10 @@ async def lookup_return_days(org: str, http: httpx.AsyncClient | None = None) ->
     try:
         resp = await http.get(SERPAPI_URL, params=params)
         resp.raise_for_status()
-    except httpx.HTTPError:
+        results = resp.json().get("organic_results", [])
+    except (httpx.HTTPError, ValueError, AttributeError):
         return None
-    snippets = [r["snippet"] for r in resp.json().get("organic_results", []) if r.get("snippet")]
+    snippets = [r["snippet"] for r in results if isinstance(r, dict) and r.get("snippet")]
     if not snippets:
         return None
     return await read_return_policy(org, snippets)

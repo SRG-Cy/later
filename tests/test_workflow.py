@@ -50,13 +50,6 @@ async def test_cancel(env):
     assert await handle.result() == "cancelled" and fired == []
 
 
-async def test_snooze_while_waiting_moves_reminder(env):
-    _, remind_at, handle = await start(env, timedelta(days=1))
-    await handle.signal(ReminderWorkflow.snooze, 3)
-    assert await handle.result() == "reminded"
-    assert len(fired) == 1 and fired[0][1] >= remind_at + timedelta(days=3)
-
-
 async def test_past_remind_at_fires_immediately(env):
     _, _, handle = await start(env, timedelta(days=-2))
     assert await handle.result() == "reminded" and len(fired) == 1
@@ -67,3 +60,23 @@ async def test_signal_after_completion_does_not_raise(env):
     await handle.signal(ReminderWorkflow.done)
     await handle.result()
     assert await signal(env.client, item_id, "done") is False
+
+
+async def test_snooze_takes_absolute_time(env):
+    _, remind_at, handle = await start(env, timedelta(days=1))
+    new_at = remind_at + timedelta(days=5)
+    await handle.signal(ReminderWorkflow.snooze, new_at.isoformat())
+    assert await handle.result() == "reminded"
+    assert fired[0][1] >= new_at
+
+
+async def test_garbage_snooze_is_ignored(env):
+    _, remind_at, handle = await start(env, timedelta(days=1))
+    await handle.signal(ReminderWorkflow.snooze, "not a date")
+    assert await handle.result() == "reminded" and fired[0][1] < remind_at + timedelta(days=1)
+
+
+def test_retry_never_gives_up_on_the_only_push():
+    from later.workflow import RETRY, SCHEDULE_TO_CLOSE
+    assert RETRY.maximum_attempts == 0 and RETRY.maximum_interval == timedelta(minutes=5)
+    assert SCHEDULE_TO_CLOSE == timedelta(hours=6)

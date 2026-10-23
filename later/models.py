@@ -4,7 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Kind = Literal["return_window", "warranty", "bill", "appointment", "deadline", "event_tickets", "other"]
-Status = Literal["needs_info", "scheduled", "reminded", "done", "snoozed", "cancelled"]
+Status = Literal["needs_info", "scheduled", "reminded", "done", "snoozed", "cancelled", "failed"]
 Source = Literal["photo", "text", "voice"]
 
 
@@ -16,8 +16,8 @@ class Facts(BaseModel):
     action: str
     anchor_date: date | None = None
     explicit_due: datetime | date | None = None
-    window_days: int | None = Field(default=None, ge=0)
-    window_months: int | None = Field(default=None, ge=0)
+    window_days: int | None = Field(default=None, ge=0, le=3650)
+    window_months: int | None = Field(default=None, ge=0, le=120)
     org: str | None = None
     evidence: str
     confidence: float = Field(ge=0, le=1)

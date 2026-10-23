@@ -9,7 +9,10 @@ from temporalio.common import RetryPolicy
 from temporalio.service import RPCError
 
 TASK_QUEUE = "later"
-RETRY = RetryPolicy(initial_interval=timedelta(seconds=2), backoff_coefficient=2.0, maximum_attempts=5)
+# The push is the whole product: keep retrying (capped at 5 min apart) for up to 6 hours.
+RETRY = RetryPolicy(initial_interval=timedelta(seconds=2), backoff_coefficient=2.0,
+                    maximum_interval=timedelta(minutes=5), maximum_attempts=0)
+SCHEDULE_TO_CLOSE = timedelta(hours=6)
 
 
 def workflow_id(item_id: str) -> str:
@@ -33,7 +36,8 @@ class ReminderWorkflow:
                 await workflow.wait_condition(lambda: self._changed, timeout=wait)
             except asyncio.TimeoutError:
                 await workflow.execute_activity("send_reminder", item_id,
-                                                start_to_close_timeout=timedelta(seconds=30), retry_policy=RETRY)
+                                                start_to_close_timeout=timedelta(seconds=30),
+                                                schedule_to_close_timeout=SCHEDULE_TO_CLOSE, retry_policy=RETRY)
                 return "reminded"
             if self._outcome:
                 return self._outcome
@@ -47,8 +51,12 @@ class ReminderWorkflow:
         self._outcome, self._changed = "cancelled", True
 
     @workflow.signal
-    def snooze(self, days: int) -> None:
-        self._remind_at += timedelta(days=days)
+    def snooze(self, remind_at_iso: str) -> None:
+        """The app computes the new time in local Irish time, so clock changes are handled there."""
+        try:
+            self._remind_at = datetime.fromisoformat(remind_at_iso)
+        except (TypeError, ValueError):
+            return
         self._changed = True
 
 

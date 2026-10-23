@@ -1,5 +1,6 @@
 """Capture -> facts -> (policy lookup) -> deadline -> stored item -> durable reminder."""
 
+import logging
 import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -10,7 +11,8 @@ from later.models import Facts, Item, Source
 from later.resolve import DUBLIN, resolve
 from later.store import ItemStore
 
-NO_DATE_NOTE = "No date printed, so counted from the day you captured it."
+log = logging.getLogger(__name__)
+NO_DATE_NOTE ="No date printed, so counted from the day you captured it."
 
 
 @dataclass
@@ -29,8 +31,17 @@ def _needs_policy(f: Facts) -> bool:
             and f.window_days is None and f.window_months is None)
 
 
+async def _quietly(call, *args):
+    """An outside service failing must never lose the capture."""
+    try:
+        return await call(*args)
+    except Exception:
+        log.exception("%s failed", getattr(call, "__name__", "call"))
+        return None
+
+
 async def _complete_facts(f: Facts, deps: Deps) -> Facts:
-    if _needs_policy(f) and (days := await deps.lookup_days(f.org)):
+    if _needs_policy(f) and (days := await _quietly(deps.lookup_days, f.org)):
         f = f.model_copy(update={"window_days": days,
                                  "evidence": f"{f.evidence} ({f.org} return policy online: {days} days)".strip()})
     has_window = f.window_days is not None or f.window_months is not None
@@ -41,7 +52,7 @@ async def _complete_facts(f: Facts, deps: Deps) -> Facts:
 
 async def process_capture(source: Source, text: str | None, image: bytes | None, deps: Deps) -> Item:
     now = deps.now()
-    facts = await deps.extract(text, image, now.astimezone(DUBLIN).date())
+    facts = await _quietly(deps.extract, text, image, now.astimezone(DUBLIN).date())
     item = Item(id=uuid.uuid4().hex, created_at=now.astimezone(UTC), source=source,
                 raw_text=text or "", status="needs_info")
     if facts is not None:
@@ -49,7 +60,13 @@ async def process_capture(source: Source, text: str | None, image: bytes | None,
         resolved = resolve(facts, now)
         item = item.model_copy(update={"facts": facts, "resolved": resolved,
                                        "status": "scheduled" if resolved else "needs_info"})
+    # Store first so the reminder activity always finds the item.
     await deps.store.insert(item)
     if item.resolved:
-        await deps.start(item.id, item.resolved.remind_at)
+        try:
+            await deps.start(item.id, item.resolved.remind_at)
+        except Exception:
+            log.exception("could not schedule reminder for %s", item.id)
+            await deps.store.set_status(item.id, "failed")
+            item = item.model_copy(update={"status": "failed"})
     return item
