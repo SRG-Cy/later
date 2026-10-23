@@ -55,12 +55,29 @@ async function send(form, label) {
     const r = await fetch("/capture", { method:"POST", body:form });
     if (!r.ok) throw new Error((await r.json()).detail || r.status);
     const it = await r.json();
-    $("status").textContent = it.resolved ? `Got it. I'll remind you ${fmt(it.resolved.remind_at)}.` : "I couldn't find a date in that. Try adding one.";
+    $("status").textContent = it.status === "failed" ? "Couldn't save that. Try again in a minute."
+      : "Got it. I'll read it in the background, so you can close this.";
     load();
   } catch (e) { $("status").textContent = "Something went wrong: " + e.message; }
 }
 
-$("photo").onchange = (e) => { const f = new FormData(); f.append("image", e.target.files[0]); send(f, "Reading your photo…"); e.target.value = ""; };
+// Shrink photos before upload: phone photos are 3-5 MB, the model only needs ~1600 px.
+async function shrink(file, max = 1600) {
+  const img = await createImageBitmap(file);
+  const scale = Math.min(1, max / Math.max(img.width, img.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  return new Promise((ok) => c.toBlob(ok, "image/jpeg", 0.85));
+}
+
+$("photo").onchange = async (e) => {
+  const file = e.target.files[0]; e.target.value = "";
+  if (!file) return;
+  const f = new FormData();
+  try { f.append("image", await shrink(file), "photo.jpg"); } catch { f.append("image", file); }
+  send(f, "Saving your photo…");
+};
 $("paste").onclick = () => { $("pastebox").hidden = !$("pastebox").hidden; $("text").focus(); };
 $("sendtext").onclick = () => { const f = new FormData(); f.append("text", $("text").value); $("text").value = ""; send(f, "Reading…"); };
 
@@ -88,24 +105,31 @@ async function load() {
   for (const it of items) {
     const el = document.createElement("div");
     el.className = "item" + (["done","cancelled"].includes(it.status) ? " done" : "");
-    const title = it.facts ? it.facts.title : (it.raw_text || "Photo");
-    const line = it.status === "failed"
-      ? `<div class="ask">Couldn't set the reminder. Capture it again in a minute.</div>`
+    const title = it.facts ? it.facts.title : (it.raw_text ? it.raw_text.slice(0, 60) : "Photo");
+    const line = it.status === "reading"
+      ? `<div class="meta">🦥 Reading… this can take a minute.</div>`
+      : it.status === "failed"
+      ? `<div class="ask">Couldn't read this. Capture it again later.</div>`
       : it.resolved
       ?`<div class="meta">Due ${fmt(it.resolved.due_at)} · reminder ${fmt(it.resolved.remind_at)} · ${it.status}</div>`
       : `<div class="ask">No date found. Capture it again with a date.</div>`;
     el.innerHTML = `<b></b><div class="meta action"></div>${line}`;
     el.querySelector("b").textContent = title;
     el.querySelector(".action").textContent = it.facts ? it.facts.action : "";
-    if (it.resolved && !["done","cancelled"].includes(it.status)) {
+    const live = it.resolved && !["done","cancelled"].includes(it.status);
+    if (live || it.status === "reading") {
       const row = document.createElement("div"); row.className = "row";
-      for (const [label, path] of [["Done","done"],["Snooze 3 days","snooze?days=3"],["Forget it","cancel"]]) {
+      const buttons = live ? [["Done","done"],["Snooze 3 days","snooze?days=3"],["Forget it","cancel"]] : [["Forget it","cancel"]];
+      for (const [label, path] of buttons) {
         const b = document.createElement("button"); b.textContent = label; b.onclick = () => act(it.id, path); row.append(b);
       }
       el.append(row);
     }
     $("items").append(el);
   }
+  // Keep checking while anything is still being read.
+  clearTimeout(load.timer);
+  if (items.some((it) => it.status === "reading")) load.timer = setTimeout(load, 5000);
 }
 load();
 </script>

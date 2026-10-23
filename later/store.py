@@ -11,11 +11,14 @@ class ItemStore(Protocol):
     async def list_recent(self, limit: int = 50) -> list[Item]: ...
     async def set_status(self, id: str, status: Status) -> None: ...
     async def update(self, item: Item) -> None: ...
+    async def put_blob(self, id: str, data: bytes) -> None: ...
+    async def get_blob(self, id: str) -> bytes | None: ...
 
 
 class MemoryStore:
     def __init__(self):
         self._items: dict[str, Item] = {}
+        self._blobs: dict[str, bytes] = {}
 
     async def insert(self, item: Item) -> None:
         self._items[item.id] = item
@@ -33,12 +36,19 @@ class MemoryStore:
     async def update(self, item: Item) -> None:
         self._items[item.id] = item
 
+    async def put_blob(self, id: str, data: bytes) -> None:
+        self._blobs[id] = data
+
+    async def get_blob(self, id: str) -> bytes | None:
+        return self._blobs.get(id)
+
 
 class MongoStore:
     """Items are stored as JSON-mode dumps (BSON can't hold plain dates) plus a sortable timestamp."""
 
     def __init__(self, uri: str, db: str = "later"):
-        self._col = AsyncMongoClient(uri, tz_aware=True)[db]["items"]
+        database = AsyncMongoClient(uri, tz_aware=True)[db]
+        self._col, self._blobs = database["items"], database["blobs"]
 
     @staticmethod
     def _doc(item: Item) -> dict:
@@ -64,3 +74,10 @@ class MongoStore:
 
     async def update(self, item: Item) -> None:
         await self._col.replace_one({"_id": item.id}, self._doc(item))
+
+    async def put_blob(self, id: str, data: bytes) -> None:
+        await self._blobs.replace_one({"_id": id}, {"_id": id, "data": data}, upsert=True)
+
+    async def get_blob(self, id: str) -> bytes | None:
+        doc = await self._blobs.find_one({"_id": id})
+        return bytes(doc["data"]) if doc else None

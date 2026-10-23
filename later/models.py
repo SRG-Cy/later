@@ -4,7 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Kind = Literal["return_window", "warranty", "bill", "appointment", "deadline", "event_tickets", "other"]
-Status = Literal["needs_info", "scheduled", "reminded", "done", "snoozed", "cancelled", "failed"]
+Status = Literal["reading", "needs_info", "scheduled", "reminded", "done", "snoozed", "cancelled", "failed"]
 Source = Literal["photo", "text", "voice"]
 
 

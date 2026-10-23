@@ -9,6 +9,8 @@ from temporalio.worker import Worker
 from later.workflow import TASK_QUEUE, ReminderWorkflow, signal, workflow_id
 
 fired: list = []
+reads: dict = {"plan": [], "calls": 0}   # plan: list of results per attempt; an Exception instance means "raise"
+failed: list = []
 
 
 @activity.defn(name="send_reminder")
@@ -16,11 +18,26 @@ async def stub_send(item_id: str) -> None:
     fired.append((item_id, activity.info().scheduled_time))
 
 
+@activity.defn(name="read_item")
+async def stub_read(item_id: str) -> str | None:
+    reads["calls"] += 1
+    step = reads["plan"].pop(0) if len(reads["plan"]) > 1 else reads["plan"][0]
+    if isinstance(step, Exception):
+        raise step
+    return step
+
+
+@activity.defn(name="mark_failed")
+async def stub_mark_failed(item_id: str) -> None:
+    failed.append(item_id)
+
+
 @pytest.fixture
 async def env():
-    fired.clear()
+    fired.clear(); failed.clear(); reads.update(plan=[None], calls=0)
     async with await WorkflowEnvironment.start_time_skipping() as env:
-        async with Worker(env.client, task_queue=TASK_QUEUE, workflows=[ReminderWorkflow], activities=[stub_send]):
+        async with Worker(env.client, task_queue=TASK_QUEUE, workflows=[ReminderWorkflow],
+                          activities=[stub_send, stub_read, stub_mark_failed]):
             yield env
 
 
@@ -80,3 +97,46 @@ def test_retry_never_gives_up_on_the_only_push():
     from later.workflow import RETRY, SCHEDULE_TO_CLOSE
     assert RETRY.maximum_attempts == 0 and RETRY.maximum_interval == timedelta(minutes=5)
     assert SCHEDULE_TO_CLOSE == timedelta(hours=6)
+
+
+# --- background reading ---
+
+async def start_reading(env):
+    item_id = uuid.uuid4().hex
+    handle = await env.client.start_workflow(ReminderWorkflow.run, args=[item_id, None],
+                                             id=workflow_id(item_id), task_queue=TASK_QUEUE)
+    return item_id, handle
+
+
+async def test_reads_then_waits_then_fires(env):
+    remind_at = await env.get_current_time() + timedelta(days=2)
+    reads["plan"] = [remind_at.isoformat()]
+    _, handle = await start_reading(env)
+    assert await handle.result() == "reminded"
+    assert reads["calls"] == 1 and len(fired) == 1 and fired[0][1] >= remind_at
+
+
+async def test_unreadable_ends_needs_info_without_push(env):
+    reads["plan"] = [None]
+    _, handle = await start_reading(env)
+    assert await handle.result() == "needs_info" and fired == []
+
+
+async def test_flaky_model_is_retried_until_it_reads(env):
+    remind_at = await env.get_current_time() + timedelta(hours=1)
+    reads["plan"] = [RuntimeError("500"), RuntimeError("500"), RuntimeError("500"), remind_at.isoformat()]
+    _, handle = await start_reading(env)
+    assert await handle.result() == "reminded" and reads["calls"] == 4
+
+
+async def test_model_down_for_hours_marks_failed(env):
+    reads["plan"] = [RuntimeError("500")]
+    item_id, handle = await start_reading(env)
+    assert await handle.result() == "failed"
+    assert failed == [item_id] and fired == []
+
+
+def test_read_retry_is_patient_but_bounded():
+    from later.workflow import READ_DEADLINE, READ_RETRY
+    assert READ_RETRY.maximum_attempts == 0 and READ_RETRY.maximum_interval == timedelta(minutes=2)
+    assert READ_DEADLINE == timedelta(hours=2)

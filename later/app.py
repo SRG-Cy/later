@@ -9,10 +9,11 @@ from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 
 from later.models import Item
-from later.pipeline import Deps, process_capture
+from later.pipeline import Deps, accept_capture
 from later.resolve import DUBLIN
 
 INDEX = Path(__file__).resolve().parent.parent / "static" / "index.html"
+MAX_PHOTO_BYTES = 4 * 1024 * 1024  # the page shrinks photos to well under this
 
 
 async def build_deps() -> Deps:
@@ -67,11 +68,14 @@ def create_app(deps: Deps | None = None) -> FastAPI:
                 heard = await d.transcribe(await audio.read(), audio.content_type or "audio/webm")
             except Exception:
                 raise HTTPException(502, "Couldn't hear that voice note. Try again or type it instead.")
-            return await process_capture("voice", heard, None, d)
+            return await accept_capture("voice", heard, None, d)
         if image is not None:
-            return await process_capture("photo", text, await image.read(), d)
+            data = await image.read()
+            if len(data) > MAX_PHOTO_BYTES:
+                raise HTTPException(413, "That photo is too big. Try again; the page shrinks it first.")
+            return await accept_capture("photo", text, data, d)
         if text and text.strip():
-            return await process_capture("text", text.strip(), None, d)
+            return await accept_capture("text", text.strip(), None, d)
         raise HTTPException(400, "Send a photo, a voice note or some text")
 
     @app.get("/items")

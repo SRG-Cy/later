@@ -58,3 +58,9 @@ async def test_update_replaces(store):
     await store.insert(item)
     await store.update(item.model_copy(update={"raw_text": "changed"}))
     assert (await store.get(item.id)).raw_text == "changed"
+
+
+async def test_blob_round_trip(store):
+    await store.put_blob("b1", b"\xff\xd8jpeg")
+    assert await store.get_blob("b1") == b"\xff\xd8jpeg"
+    assert await store.get_blob("missing") is None
