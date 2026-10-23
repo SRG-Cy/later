@@ -3,6 +3,7 @@
 import asyncio
 import os
 
+from dotenv import load_dotenv
 from temporalio.client import Client
 from temporalio.worker import Worker
 
@@ -16,6 +17,7 @@ from later.workflow import TASK_QUEUE, ReminderWorkflow
 
 
 async def main() -> None:
+    load_dotenv()  # local dev; real env vars win
     init_tracing()
     client = await Client.connect(os.environ.get("TEMPORAL_ADDRESS", "localhost:7233"))
     acts = ReminderActivities(MongoStore(os.environ["MONGODB_URI"]), notify, extract_facts, lookup_return_days)

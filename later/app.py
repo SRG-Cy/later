@@ -17,6 +17,7 @@ MAX_PHOTO_BYTES = 4 * 1024 * 1024  # the page shrinks photos to well under this
 
 
 async def build_deps() -> Deps:
+    from dotenv import load_dotenv
     from temporalio.client import Client
 
     from later.llm import extract_facts
@@ -26,6 +27,7 @@ async def build_deps() -> Deps:
     from later.voice import transcribe
     from later.workflow import signal, start_reminder
 
+    load_dotenv()  # local dev; real env vars win
     init_tracing()
     client = await Client.connect(os.environ.get("TEMPORAL_ADDRESS", "localhost:7233"))
     return Deps(
