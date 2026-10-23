@@ -54,8 +54,7 @@ Timezone: `Europe/Dublin`. Default reminder time of day: 09:00 local.
 | Partner | Job |
 |---|---|
 | Gemma | extraction (text + vision), policy reading |
-| DigitalOcean | serverless inference for the hosted demo (OpenAI-compatible) |
-| Ollama (local) | private mode — same code, `LLM_BASE_URL` swap |
+| DigitalOcean | serverless inference for Gemma (OpenAI-compatible) — the only place the model runs |
 | Temporal | durable sleep per item, retries, signals |
 | SerpApi | return-policy lookup |
 | ElevenLabs | voice note → text (speech-to-text) |
@@ -70,7 +69,11 @@ Timezone: `Europe/Dublin`. Default reminder time of day: 09:00 local.
 
 - Real lazy payoff: items captured this week, reminders that fired on time.
 - Eval numbers: 30 hand-labelled captures; kind accuracy, due date exact /
-  within 1 day, latency, cost — local small Gemma vs hosted Gemma.
-- Why open: private mode runs fully on a laptop; receipts/notes never leave it.
+  within 1 day, latency, cost — two hosted open models (e.g. Gemma vs another open-weight model on DO).
+- No AI runs on the builder's PC: the model is hosted only. Code points at any
+  OpenAI-compatible endpoint via `LLM_BASE_URL`.
+- Why open: open weights mean anyone can self-host the exact same model
+  (privacy), no lock-in to one vendor's API or pricing, and swapping
+  provider or model is one env var.
 - What went wrong section. Screenshots: Temporal timeline, Sentry trace,
   Render logs, DO usage.

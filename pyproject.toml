@@ -1,0 +1,16 @@
+[project]
+name = "later"
+version = "0.1.0"
+description = "Snap it, say it, paste it. Later reminds you at the last sensible moment."
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+  "fastapi", "uvicorn[standard]", "pydantic>=2", "openai", "temporalio",
+  "pymongo>=4.10", "httpx", "sentry-sdk", "elevenlabs", "python-multipart", "tzdata",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
