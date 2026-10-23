@@ -16,15 +16,22 @@ def make_item(minutes_ago: int = 0, **kw) -> Item:
 
 
 def stores():
-    yield pytest.param(lambda: MemoryStore(), id="memory")
-    uri = os.environ.get("MONGODB_URI")
-    yield pytest.param(lambda: MongoStore(uri, db=f"later_test_{uuid.uuid4().hex[:6]}"), id="mongo",
-                       marks=pytest.mark.skipif(not uri, reason="MONGODB_URI not set"))
+    yield pytest.param("memory", id="memory")
+    yield pytest.param("mongo", id="mongo",
+                       marks=pytest.mark.skipif(not os.environ.get("MONGODB_URI"), reason="MONGODB_URI not set"))
 
 
 @pytest.fixture(params=list(stores()))
-def store(request):
-    return request.param()
+async def store(request):
+    if request.param == "memory":
+        yield MemoryStore()
+        return
+    from pymongo import AsyncMongoClient
+    uri, db = os.environ["MONGODB_URI"], f"later_test_{uuid.uuid4().hex[:6]}"
+    yield MongoStore(uri, db=db)
+    client = AsyncMongoClient(uri)
+    await client.drop_database(db)  # leave the free cluster clean
+    await client.close()
 
 
 async def test_round_trip_keeps_utc(store):
