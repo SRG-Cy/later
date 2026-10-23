@@ -33,8 +33,24 @@ def _user_message(text: str | None, image: bytes | None) -> dict:
     return {"role": "user", "content": parts}
 
 
+def _json_object(raw: str):
+    """Gemma 4 on Google AI Studio always thinks out loud first and may fence its JSON.
+    Skip the <thought> block and return the last complete top-level JSON value."""
+    text = raw.rsplit("</thought>", 1)[-1]
+    decoder, found, i = json.JSONDecoder(), None, 0
+    while (i := text.find("{", i)) != -1:
+        try:
+            found, end = decoder.raw_decode(text, i)
+            i = end
+        except ValueError:
+            i += 1
+    if found is None:
+        return json.loads(text.strip().strip("`"))  # e.g. a bare [] or null: let the caller reject it
+    return found
+
+
 def _clean(raw: str) -> dict:
-    data = json.loads(raw)
+    data = _json_object(raw)
     if not isinstance(data, dict):
         raise ValueError("expected a JSON object")
     # A bare YYYY-MM-DD must stay a date, not become a midnight datetime.
@@ -45,9 +61,8 @@ def _clean(raw: str) -> dict:
 
 
 async def _complete(client, model: str, messages: list[dict]) -> str:
-    resp = await client.chat.completions.create(
-        model=model, messages=messages, temperature=0, response_format={"type": "json_object"},
-    )
+    # No response_format: Google's JSON mode for Gemma 4 returns 500s, and the parser copes without it.
+    resp = await client.chat.completions.create(model=model, messages=messages, temperature=0)
     return resp.choices[0].message.content or ""
 
 
@@ -73,7 +88,7 @@ async def read_return_policy(org: str, snippets: list[str], client: AsyncOpenAI 
     messages = [{"role": "system", "content": POLICY_SYSTEM},
                 {"role": "user", "content": f"Shop: {org}\n\n" + "\n".join(f"- {s}" for s in snippets)}]
     try:
-        data = json.loads(await _complete(client, os.environ["LLM_MODEL"], messages))
+        data = _json_object(await _complete(client, os.environ["LLM_MODEL"], messages))
     except ValueError:
         return None
     days = data.get("days") if isinstance(data, dict) else None

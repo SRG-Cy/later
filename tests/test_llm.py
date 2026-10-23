@@ -89,3 +89,33 @@ async def test_huge_window_rejected():
 @pytest.mark.parametrize("raw", ['{"days": true}', '{"days": 100000}', "[]"])
 async def test_read_return_policy_rejects_nonsense(raw):
     assert await read_return_policy("Boots", ["x"], client=FakeLLM(raw)) is None
+
+
+# --- Gemma 4 on Google AI Studio always "thinks" first and may fence its JSON ---
+
+async def test_thought_block_and_fence_are_skipped():
+    raw = "<thought>* Input: receipt {not json}\n* Hi.</thought>```json\n" + reply() + "\n```"
+    f = await extract_facts("x", None, TODAY, client=FakeLLM(raw))
+    assert f is not None and f.window_days == 30
+
+
+async def test_unclosed_thought_still_finds_trailing_json():
+    raw = "<thought>* thinking about {braces}\n" + reply()
+    assert (await extract_facts("x", None, TODAY, client=FakeLLM(raw))) is not None
+
+
+async def test_no_json_mode_requested():
+    c = FakeLLM(reply())
+    seen = {}
+    orig = c.chat.completions.create
+
+    async def spy(**kw):
+        seen.update(kw)
+        return await orig(**kw)
+    c.chat.completions.create = spy
+    await extract_facts("x", None, TODAY, client=c)
+    assert "response_format" not in seen
+
+
+async def test_policy_reply_with_thought_is_read():
+    assert await read_return_policy("Boots", ["x"], client=FakeLLM('<thought>hmm</thought>{"days": 28}')) == 28
