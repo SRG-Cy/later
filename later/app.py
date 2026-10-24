@@ -7,14 +7,26 @@ from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from later.models import Item
 from later.pipeline import Deps, accept_capture
 from later.resolve import DUBLIN
 from later.security import check_token, public_base_url, topic_for
 
-INDEX = Path(__file__).resolve().parent.parent / "static" / "index.html"
+STATIC = Path(__file__).resolve().parent.parent / "static"
+INDEX = STATIC / "index.html"
+MANIFEST = {
+    "name": "Later", "short_name": "Later", "start_url": "/", "display": "standalone",
+    "background_color": "#F5F7F8", "theme_color": "#2E6B57",
+    "description": "Snap it, say it or type it. Later nudges you once, on the last sensible day.",
+    "icons": [
+        {"src": "/static/brand/icon-192.png", "sizes": "192x192", "type": "image/png"},
+        {"src": "/static/brand/icon-512.png", "sizes": "512x512", "type": "image/png"},
+        {"src": "/static/brand/icon.svg", "sizes": "any", "type": "image/svg+xml"},
+    ],
+}
 MAX_PHOTO_BYTES = 4 * 1024 * 1024  # the page shrinks photos to well under this
 COOKIE = "later_visitor"
 
@@ -83,9 +95,15 @@ def create_app(deps: Deps | None = None, per_visitor_daily: int | None = None,
         if await d.store.count_since(midnight) >= total_daily:
             raise HTTPException(429, "The demo is busy today. Try again tomorrow.")
 
+    app.mount("/static", StaticFiles(directory=STATIC), name="static")
+
     @app.get("/")
     async def index():
         return FileResponse(INDEX)
+
+    @app.get("/manifest.webmanifest")
+    async def manifest():
+        return JSONResponse(MANIFEST, media_type="application/manifest+json")
 
     @app.get("/healthz")
     async def healthz() -> dict:

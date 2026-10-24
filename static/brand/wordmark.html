@@ -1,0 +1,13 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; background: transparent; }
+  .wm { display: inline-flex; align-items: center; gap: 28px; padding: 24px 40px 24px 24px;
+        font: 700 132px/1 "Atkinson Hyperlegible", system-ui, sans-serif; letter-spacing: -0.02em; color: #1C2230; }
+  .wm img { width: 150px; height: 150px; }
+  body.dark { background: #12161C; } body.dark .wm { color: #E9ECF1; }
+</style></head>
+<body><div class="wm"><img src="icon.svg" alt="">Later</div>
+<script>if (location.hash === "#dark") document.body.classList.add("dark");</script>
+</body></html>

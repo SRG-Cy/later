@@ -238,3 +238,14 @@ def test_healthz_is_cheap_sets_no_cookie_and_shows_link_base(monkeypatch):
     r = client.get("/healthz")
     assert r.status_code == 200 and "set-cookie" not in r.headers
     assert r.json() == {"ok": True, "public_base_url": "https://later.example"}
+
+
+def test_brand_assets_and_manifest_are_served():
+    client, _ = make(Recorder())
+    assert client.get("/static/brand/icon.svg").status_code == 200
+    assert client.get("/static/brand/icon-180.png").headers["content-type"] == "image/png"
+    m = client.get("/manifest.webmanifest")
+    assert m.status_code == 200 and m.headers["content-type"].startswith("application/manifest+json")
+    body = m.json()
+    assert body["name"] == "Later" and body["display"] == "standalone"
+    assert {i["sizes"] for i in body["icons"]} >= {"192x192", "512x512"}

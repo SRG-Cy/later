@@ -1,3 +1,5 @@
+<img src="static/brand/wordmark.png" alt="Later" width="300">
+
 # Later 🦥
 
 Snap it, say it or type it. Later works out what you'll need to do and the last sensible day to do it, then stays quiet until then and nudges you once.
