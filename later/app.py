@@ -87,6 +87,10 @@ def create_app(deps: Deps | None = None, per_visitor_daily: int | None = None,
     async def index():
         return FileResponse(INDEX)
 
+    @app.get("/healthz")
+    async def healthz() -> dict:
+        return {"ok": True}
+
     @app.get("/me")
     async def me(owner: str = Depends(_visitor)) -> dict:
         return {"topic": topic_for(owner)}

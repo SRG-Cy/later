@@ -1,0 +1,37 @@
+# Render Blueprint: one Docker web service running Temporal + worker + app.
+# Needs a paid instance (starter) for the persistent disk and so it never sleeps:
+# a sleeping free instance would stop the worker, and reminders would not fire.
+services:
+  - type: web
+    name: later
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    healthCheckPath: /healthz
+    disk:
+      name: temporal-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: LLM_BASE_URL
+        value: https://generativelanguage.googleapis.com/v1beta/openai/
+      - key: LLM_MODEL
+        value: gemma-4-31b-it
+      - key: LLM_VISION_MODEL
+        value: gemma-4-31b-it
+      - key: TEMPORAL_ADDRESS
+        value: localhost:7233
+      - key: LATER_SECRET
+        generateValue: true
+      - key: LLM_API_KEY
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: SERPAPI_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false

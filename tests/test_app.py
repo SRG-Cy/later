@@ -230,3 +230,9 @@ def test_total_daily_limit():
     assert a.post("/capture", data={"text": "1"}).status_code == 200
     assert b.post("/capture", data={"text": "2"}).status_code == 200
     assert TestClient(a.app).post("/capture", data={"text": "3"}).status_code == 429
+
+
+def test_healthz_is_cheap_and_sets_no_cookie():
+    client, _ = make(Recorder())
+    r = client.get("/healthz")
+    assert r.status_code == 200 and r.json() == {"ok": True} and "set-cookie" not in r.headers

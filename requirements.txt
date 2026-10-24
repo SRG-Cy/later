@@ -1,0 +1,13 @@
+# Runtime dependencies (mirrors [project.dependencies] in pyproject.toml)
+fastapi
+uvicorn[standard]
+pydantic>=2
+openai
+temporalio
+pymongo>=4.10
+httpx
+sentry-sdk
+elevenlabs
+python-multipart
+tzdata
+python-dotenv
