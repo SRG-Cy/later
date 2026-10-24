@@ -1,0 +1,41 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* DEV cover: 1000 x 420. Rendered at 2x for sharpness. */
+  html, body { margin: 0; }
+  .cover {
+    position: relative; width: 1000px; height: 420px; overflow: hidden;
+    background: #2E6B57; color: #FFFFFF; font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+  }
+  /* A faint echo of the string-l, large, behind everything */
+  .echo { position: absolute; left: -120px; top: -150px; width: 760px; height: 760px; opacity: .08; }
+  .text { position: absolute; left: 64px; top: 58px; width: 590px; }
+  .brand { display: flex; align-items: center; gap: 14px; font-weight: 700; font-size: 30px; letter-spacing: -0.01em; }
+  .brand .tile { width: 52px; height: 52px; border-radius: 13px; background: #FFFFFF; color: #2E6B57; display: grid; place-items: center; }
+  .brand .tile svg { width: 40px; height: 40px; }
+  h1 { margin: 40px 0 0; font-size: 44px; line-height: 1.08; letter-spacing: -0.025em; font-weight: 700; }
+  h1 .soft { color: #BFE3D3; }
+  p { margin: 22px 0 0; font-size: 19px; line-height: 1.45; color: #D7EDE4; max-width: 40ch; }
+  /* Phone with the real app screenshot, cropped by the bottom edge */
+  .phone {
+    position: absolute; right: 70px; top: 46px; width: 262px; height: 440px;
+    border-radius: 38px; background: #12161C; padding: 10px; box-shadow: 0 24px 60px -18px rgba(0,0,0,.55);
+  }
+  .phone .screen { width: 100%; height: 100%; border-radius: 29px; overflow: hidden; background: #F5F7F8; }
+  .phone img { width: 100%; display: block; }
+</style></head>
+<body>
+<div class="cover">
+  <svg class="echo" viewBox="0 0 512 512" aria-hidden="true">
+    <path d="M96 400 C176 400 244 352 283 274 C322 196 318 110 265 108 C212 106 194 198 217 296 C233 368 265 410 313 410 C361 410 393 378 411 341"
+          fill="none" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <div class="text">
+    <div class="brand"><span class="tile"><svg viewBox="0 0 512 512" aria-hidden="true"><path d="M96 400 C176 400 244 352 283 274 C322 196 318 110 265 108 C212 106 194 198 217 296 C233 368 265 410 313 410 C361 410 393 378 411 341" fill="none" stroke="currentColor" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Later</div>
+    <h1>35% of model calls failed.<br><span class="soft">Nothing was lost.</span></h1>
+    <p>Snap a receipt, letter or poster. Open Gemma reads it, Temporal waits, and you get one nudge on the day it matters.</p>
+  </div>
+  <div class="phone"><div class="screen"><img src="app-light.png" alt=""></div></div>
+</div>
+</body></html>
