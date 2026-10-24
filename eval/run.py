@@ -1,6 +1,6 @@
 """Run the 30 test captures through the real pipeline (Gemma extraction + deadline resolver).
 
-    python eval/run.py [--model gemma-4-31b-it] [--concurrency 3]
+    python eval/run.py [--model gemma-4-31b-it] [--concurrency 3] [--cases eval/galway.jsonl]
 
 Failed model calls are retried with backoff, like the Temporal read_item activity.
 Writes eval/results/<model>.json and eval/results/<model>.md.
@@ -73,7 +73,7 @@ def summarise(model: str, rows: list[dict]) -> str:
     misses = [r for r in rows if not r["due_ok"]]
     out = [
         f"# Eval: {model}", "",
-        f"30 hand-written captures (27 typed, 3 drawn images), captured {CAPTURED:%Y-%m-%d %H:%M} Dublin.", "",
+        f"{len(rows)} captures ({sum(r['input'] == 'text' for r in rows)} typed, {sum(r['input'] == 'photo' for r in rows)} images), captured {CAPTURED:%Y-%m-%d %H:%M} Dublin.", "",
         "| Metric | Result |", "|---|---|",
         line("Due date exactly right", "due_ok"),
         line("Due date within 1 day", "due_within_1"),
@@ -94,16 +94,18 @@ async def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default=os.environ.get("LLM_MODEL", "gemma-4-31b-it"))
     ap.add_argument("--concurrency", type=int, default=3)
+    ap.add_argument("--cases", default="eval/cases.jsonl")
     args = ap.parse_args()
     os.environ["LLM_MODEL"] = os.environ["LLM_VISION_MODEL"] = args.model
-    cases = [json.loads(l) for l in (ROOT / "eval/cases.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    cases = [json.loads(l) for l in (ROOT / args.cases).read_text(encoding="utf-8").splitlines() if l.strip()]
     sem = asyncio.Semaphore(args.concurrency)
     rows = await asyncio.gather(*(run_case(c, sem) for c in cases))
     out = ROOT / "eval/results"
     out.mkdir(exist_ok=True)
-    (out / f"{args.model}.json").write_text(json.dumps(rows, indent=1, ensure_ascii=False), encoding="utf-8")
-    summary = summarise(args.model, rows)
-    (out / f"{args.model}.md").write_text(summary, encoding="utf-8")
+    name = f"{args.model}-{Path(args.cases).stem}"
+    (out / f"{name}.json").write_text(json.dumps(rows, indent=1, ensure_ascii=False), encoding="utf-8")
+    summary = summarise(f"{args.model} on {args.cases}", rows)
+    (out / f"{name}.md").write_text(summary, encoding="utf-8")
     print("\n" + summary)
 
 
