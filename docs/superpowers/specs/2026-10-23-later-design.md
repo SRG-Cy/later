@@ -60,8 +60,7 @@ Timezone: `Europe/Dublin`. Default reminder time of day: 09:00 local.
 | ElevenLabs | voice note → text (speech-to-text) |
 | MongoDB Atlas | item store |
 | Sentry Agent Tracing | trace every model call: latency, tokens, cost |
-| Render | hosts web + worker + Temporal dev server |
-| .tech domain | public URL |
+| Render | hosts web + worker + Temporal dev server, public URL on onrender.com |
 | Entire / DevRelay | build session embedded in the post |
 | Auth0 for AI Agents | **stretch**: approve before adding to Google Calendar |
 
