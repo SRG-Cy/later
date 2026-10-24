@@ -31,6 +31,7 @@ class Resolved(BaseModel):
 
 class Item(BaseModel):
     id: str
+    owner: str = ""  # anonymous visitor id
     created_at: datetime
     source: Source
     raw_text: str

@@ -71,3 +71,19 @@ async def test_blob_round_trip(store):
     await store.put_blob("b1", b"\xff\xd8jpeg")
     assert await store.get_blob("b1") == b"\xff\xd8jpeg"
     assert await store.get_blob("missing") is None
+
+
+async def test_list_recent_filters_by_owner(store):
+    mine, theirs = make_item(owner="me"), make_item(owner="them")
+    await store.insert(mine)
+    await store.insert(theirs)
+    assert [i.id for i in await store.list_recent(owner="me")] == [mine.id]
+
+
+async def test_count_since(store):
+    await store.insert(make_item(minutes_ago=5, owner="me"))
+    await store.insert(make_item(minutes_ago=5, owner="them"))
+    await store.insert(make_item(minutes_ago=60 * 30, owner="me"))  # yesterday
+    since = datetime(2026, 10, 23, tzinfo=UTC)
+    assert await store.count_since(since, owner="me") == 1
+    assert await store.count_since(since) == 2

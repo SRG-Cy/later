@@ -23,12 +23,17 @@
   .item b { display:block; } .meta { color:var(--muted); font-size:.9rem; } .ask { color:var(--warn); font-size:.9rem; }
   .row { display:flex; gap:8px; margin-top:10px; } .row button { flex:1; padding:8px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--ink); font:inherit; }
   .done { opacity:.5; } input[type=file] { display:none; }
+  .bell { margin:-12px 0 20px; padding:10px 12px; border-radius:12px; background:var(--card); border:1px solid var(--line); font-size:.9rem; color:var(--muted); }
+  .bell a { color:var(--accent); } .bell code { color:var(--ink); word-break:break-all; }
+  .bell button { margin-left:4px; padding:2px 8px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--ink); font:inherit; }
 </style>
 </head>
 <body>
 <main>
   <h1>Later 🦥</h1>
   <p class="sub">Snap it, say it or paste it. Later works out the last sensible moment and stays quiet until then.</p>
+  <p class="bell">🔔 Reminders arrive in the free <a href="https://ntfy.sh/app" target="_blank" rel="noopener">ntfy app</a>.
+    Subscribe to your private topic: <code id="topic">…</code> <button id="copy" type="button">Copy</button></p>
 
   <div class="actions">
     <label class="btn" for="photo"><span>📷</span>Snap</label>
@@ -131,6 +136,11 @@ async function load() {
   clearTimeout(load.timer);
   if (items.some((it) => it.status === "reading")) load.timer = setTimeout(load, 5000);
 }
+fetch("/me").then((r) => r.json()).then(({ topic }) => { $("topic").textContent = topic; });
+$("copy").onclick = async () => {
+  try { await navigator.clipboard.writeText($("topic").textContent); $("copy").textContent = "Copied"; }
+  catch { $("copy").textContent = "Select it"; }
+};
 load();
 </script>
 </body>

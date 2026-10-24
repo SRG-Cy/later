@@ -6,6 +6,7 @@ import httpx
 
 from later.models import Item
 from later.resolve import DUBLIN
+from later.security import item_token, topic_for
 
 NTFY_URL = "https://ntfy.sh/"
 
@@ -13,10 +14,12 @@ NTFY_URL = "https://ntfy.sh/"
 async def notify(item: Item, http: httpx.AsyncClient | None = None) -> None:
     base = os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000").rstrip("/")
     due = item.resolved.due_at.astimezone(DUBLIN)
-    action = lambda label, path: {"action": "http", "label": label, "url": f"{base}/items/{item.id}/{path}",
+    t = item_token(item.id)  # the ntfy app has no cookie, so the link itself proves who may press it
+    action = lambda label, path: {"action": "http", "label": label,
+                                  "url": f"{base}/items/{item.id}/{path}{'&' if '?' in path else '?'}t={t}",
                                   "method": "POST", "clear": True}
     payload = {
-        "topic": os.environ["NTFY_TOPIC"],
+        "topic": topic_for(item.owner),
         "title": f"Later: {item.facts.title}",
         "message": f"{item.facts.action} (by {due:%a %d %b})",
         "actions": [action("Done", "done"), action("Snooze 3 days", "snooze?days=3")],

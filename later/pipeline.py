@@ -33,8 +33,9 @@ class Deps:
     now: Callable[[], datetime] = lambda: datetime.now(UTC)
 
 
-async def accept_capture(source: Source, text: str | None, image: bytes | None, deps: Deps) -> Item:
-    item = Item(id=uuid.uuid4().hex, created_at=deps.now().astimezone(UTC), source=source,
+async def accept_capture(source: Source, text: str | None, image: bytes | None, deps: Deps,
+                         owner: str = "") -> Item:
+    item = Item(id=uuid.uuid4().hex, owner=owner, created_at=deps.now().astimezone(UTC), source=source,
                 raw_text=text or "", status="reading")
     # Store first so the read activity always finds the item and its photo.
     await deps.store.insert(item)

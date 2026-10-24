@@ -36,9 +36,14 @@ class Recorder:
                     transcribe=transcribe, now=lambda: CAPTURED)
 
 
-def make(rec: Recorder):
+@pytest.fixture(autouse=True)
+def secret(monkeypatch):
+    monkeypatch.setenv("LATER_SECRET", "s3cret")
+
+
+def make(rec: Recorder, **limits):
     store = MemoryStore()
-    return TestClient(create_app(rec.deps(store))), store
+    return TestClient(create_app(rec.deps(store), **limits)), store
 
 
 def capture_and_read(client, text="bill") -> str:
@@ -169,3 +174,59 @@ def test_list_items_and_index_page():
     assert len(client.get("/items").json()) == 1
     page = client.get("/")
     assert page.status_code == 200 and "Later" in page.text
+
+
+# --- endpoint protection ---
+
+def test_capture_sets_private_visitor_cookie():
+    client, _ = make(Recorder())
+    r = client.post("/capture", data={"text": "x"})
+    cookie = r.headers["set-cookie"].lower()
+    assert "later_visitor=" in cookie and "httponly" in cookie and "samesite=lax" in cookie
+
+
+def test_visitors_only_see_their_own_items():
+    a, store = make(Recorder())
+    b = TestClient(a.app)
+    a.post("/capture", data={"text": "mine"})
+    b.post("/capture", data={"text": "theirs"})
+    assert [i["raw_text"] for i in a.get("/items").json()] == ["mine"]
+    assert [i["raw_text"] for i in b.get("/items").json()] == ["theirs"]
+
+
+def test_other_visitor_cannot_act_on_my_item():
+    a, _ = make(Recorder())
+    item_id = a.post("/capture", data={"text": "mine"}).json()["id"]
+    b = TestClient(a.app)
+    assert b.post(f"/items/{item_id}/cancel").status_code == 404
+
+
+def test_signed_link_from_the_push_works_without_cookie():
+    from later.security import item_token
+    a, _ = make(Recorder())
+    item_id = a.post("/capture", data={"text": "mine"}).json()["id"]
+    phone = TestClient(a.app)  # the ntfy app has no cookie
+    assert phone.post(f"/items/{item_id}/cancel?t={item_token(item_id)}").status_code == 200
+    assert phone.post(f"/items/{item_id}/done?t=wrong").status_code == 404
+
+
+def test_me_returns_this_visitors_topic():
+    from later.security import topic_for
+    client, _ = make(Recorder())
+    client.post("/capture", data={"text": "x"})
+    me = client.get("/me").json()
+    assert me["topic"] == topic_for(client.cookies["later_visitor"])
+    assert client.get("/me").json() == me
+
+
+def test_per_visitor_daily_limit():
+    client, _ = make(Recorder(), per_visitor_daily=2)
+    assert [client.post("/capture", data={"text": str(i)}).status_code for i in range(3)] == [200, 200, 429]
+
+
+def test_total_daily_limit():
+    a, _ = make(Recorder(), total_daily=2)
+    b = TestClient(a.app)
+    assert a.post("/capture", data={"text": "1"}).status_code == 200
+    assert b.post("/capture", data={"text": "2"}).status_code == 200
+    assert TestClient(a.app).post("/capture", data={"text": "3"}).status_code == 429
