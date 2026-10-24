@@ -28,15 +28,13 @@ The lazy part is the whole point: you don't type a calendar entry, you don't wor
 
 ## Code
 
-**[github.com/SRG-Cy/later](https://github.com/SRG-Cy/later)**
-
-<!-- Once the repo is public, you can swap the link above for a DEV embed of the repo URL. -->
+{% embed https://github.com/SRG-Cy/later %}
 
 MIT licensed, with 112 tests. Temporal workflows are tested with Temporal's time-skipping test server, so "wait 30 days" runs in a second.
 
 ## How I Built It
 
-```
+```plaintext
 phone ──capture──▶ FastAPI ──store──▶ MongoDB Atlas
                       │
                       └─start──▶ Temporal workflow (one per item)
