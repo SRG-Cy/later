@@ -34,3 +34,24 @@ def test_missing_secret_fails_loudly(monkeypatch):
     monkeypatch.delenv("LATER_SECRET")
     with pytest.raises(RuntimeError):
         item_token("abc")
+
+
+def test_public_base_url_prefers_explicit_setting(monkeypatch):
+    from later.security import public_base_url
+    monkeypatch.setenv("PUBLIC_BASE_URL", "https://mine.example/")
+    monkeypatch.setenv("RENDER_EXTERNAL_URL", "https://later-x.onrender.com")
+    assert public_base_url() == "https://mine.example"
+
+
+def test_public_base_url_falls_back_to_render(monkeypatch):
+    from later.security import public_base_url
+    monkeypatch.delenv("PUBLIC_BASE_URL", raising=False)
+    monkeypatch.setenv("RENDER_EXTERNAL_URL", "https://later-x.onrender.com")
+    assert public_base_url() == "https://later-x.onrender.com"
+
+
+def test_public_base_url_defaults_to_localhost(monkeypatch):
+    from later.security import public_base_url
+    monkeypatch.delenv("PUBLIC_BASE_URL", raising=False)
+    monkeypatch.delenv("RENDER_EXTERNAL_URL", raising=False)
+    assert public_base_url() == "http://localhost:8000"

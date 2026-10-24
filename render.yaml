@@ -27,8 +27,6 @@ services:
         sync: false
       - key: MONGODB_URI
         sync: false
-      - key: PUBLIC_BASE_URL
-        sync: false
       - key: SERPAPI_KEY
         sync: false
       - key: ELEVENLABS_API_KEY

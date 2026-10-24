@@ -27,3 +27,9 @@ def check_token(item_id: str, token: str | None) -> bool:
 
 def topic_for(owner: str) -> str:
     return f"later-{_sign(f'topic:{owner}')[:20]}"
+
+
+def public_base_url() -> str:
+    """Where push-button links point. Render sets RENDER_EXTERNAL_URL on every web service."""
+    url = os.environ.get("PUBLIC_BASE_URL") or os.environ.get("RENDER_EXTERNAL_URL") or "http://localhost:8000"
+    return url.rstrip("/")

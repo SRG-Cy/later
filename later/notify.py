@@ -1,18 +1,17 @@
 """The one push Later ever sends, via ntfy (open-source push). JSON publish keeps non-ASCII titles intact."""
 
-import os
 
 import httpx
 
 from later.models import Item
 from later.resolve import DUBLIN
-from later.security import item_token, topic_for
+from later.security import item_token, public_base_url, topic_for
 
 NTFY_URL = "https://ntfy.sh/"
 
 
 async def notify(item: Item, http: httpx.AsyncClient | None = None) -> None:
-    base = os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000").rstrip("/")
+    base = public_base_url()
     due = item.resolved.due_at.astimezone(DUBLIN)
     t = item_token(item.id)  # the ntfy app has no cookie, so the link itself proves who may press it
     action = lambda label, path: {"action": "http", "label": label,

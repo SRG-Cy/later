@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from later.models import Item
 from later.pipeline import Deps, accept_capture
 from later.resolve import DUBLIN
-from later.security import check_token, topic_for
+from later.security import check_token, public_base_url, topic_for
 
 INDEX = Path(__file__).resolve().parent.parent / "static" / "index.html"
 MAX_PHOTO_BYTES = 4 * 1024 * 1024  # the page shrinks photos to well under this
@@ -90,7 +90,7 @@ def create_app(deps: Deps | None = None, per_visitor_daily: int | None = None,
     @app.get("/healthz")
     async def healthz() -> dict:
         # The base the push buttons link to: not secret, and the first thing to check when they don't work.
-        return {"ok": True, "public_base_url": os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000")}
+        return {"ok": True, "public_base_url": public_base_url()}
 
     @app.get("/me")
     async def me(owner: str = Depends(_visitor)) -> dict:
