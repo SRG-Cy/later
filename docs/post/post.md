@@ -22,7 +22,7 @@ The lazy part is the whole point: you don't type a calendar entry, you don't wor
 
 ## Demo
 
-**Try it:** https://later-h5nw.onrender.com (no sign-up). Tap **Throw something in**, then **Type**, paste something like *"Penneys receipt 20/10/2026. Refunds within 28 days"*, and watch it move from *Reading* to *This month*. Open **Get nudges on your phone** to subscribe to your private push topic in the free [ntfy](https://ntfy.sh) app.
+**Try it:** https://later-h5nw.onrender.com (no sign-up). Tap **Throw something in**, then **Type**, paste something like *"Penneys receipt 20/10/2026. Refunds within 28 days"*, and watch it move from *Reading* to *This month*. Tap the 🔔 to subscribe to your private push topic in the free [ntfy](https://ntfy.sh) app.
 
 <!-- DEMO VIDEO: add a 60-90 s screen recording here (capture -> Reading -> moves into the timeline -> push on phone -> tap Done). -->
 
