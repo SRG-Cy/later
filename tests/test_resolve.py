@@ -50,3 +50,14 @@ def test_results_are_utc():
 
 def test_absurd_window_is_unresolvable_not_a_crash():
     assert resolve(facts(kind="other", window_days=3650, anchor_date=date(9999, 6, 1)), CAPTURED) is None
+
+
+def test_date_only_event_nudges_at_nine_that_morning():
+    # A gig or ticket sale with no time known: 23:29 that night would be too late.
+    r = resolve(facts(kind="event_tickets", explicit_due=date(2026, 11, 13)), CAPTURED)
+    assert r.remind_at == dublin(2026, 11, 13, 9, 0) and not r.late
+
+
+def test_event_with_a_time_still_nudges_30_minutes_before():
+    r = resolve(facts(kind="event_tickets", explicit_due=dublin(2026, 11, 13, 20, 30)), CAPTURED)
+    assert r.remind_at == dublin(2026, 11, 13, 20, 0)

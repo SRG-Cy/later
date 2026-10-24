@@ -51,8 +51,11 @@ def _resolve(facts: Facts, captured_at: datetime) -> Resolved | None:
     if due_at is None:
         return None
     lead = LEAD[facts.kind]
-    if facts.kind == "event_tickets":
-        remind_at = due_at - lead
+    if facts.kind == "event_tickets" and isinstance(facts.explicit_due, datetime):
+        remind_at = due_at - lead  # a known time: nudge just before it
+    elif facts.kind == "event_tickets":
+        # Only the day is known: nudge that morning, not at 23:29 when it's over.
+        remind_at = datetime.combine(due_at.astimezone(DUBLIN).date(), REMIND_AT, tzinfo=DUBLIN)
     else:
         # Lead is in calendar days; keep 09:00 local even across a clock change.
         remind_day = (due_at.astimezone(DUBLIN) - lead).date()
