@@ -1,0 +1,79 @@
+[
+ {
+  "id": "galway-seamus-fogarty",
+  "input": "text",
+  "expected_due": "2026-11-15",
+  "attempts": 2,
+  "errors": [
+   "InternalServerError"
+  ],
+  "call_secs": 108.0,
+  "total_secs": 120.7,
+  "kind": "event_tickets",
+  "got_due": "2026-11-15",
+  "evidence": "Sunday 15 November 2026",
+  "kind_ok": true,
+  "due_ok": true,
+  "due_within_1": true
+ },
+ {
+  "id": "galway-pa-sheehy",
+  "input": "text",
+  "expected_due": "2026-11-28",
+  "attempts": 1,
+  "errors": [],
+  "call_secs": 29.9,
+  "total_secs": 30.1,
+  "kind": "event_tickets",
+  "got_due": "2026-11-28",
+  "evidence": "Saturday 28 November 2026, doors 20:30",
+  "kind_ok": true,
+  "due_ok": true,
+  "due_within_1": true
+ },
+ {
+  "id": "galway-christmas-market",
+  "input": "text",
+  "expected_due": "2026-12-31",
+  "attempts": 1,
+  "errors": [],
+  "call_secs": 65.1,
+  "total_secs": 65.1,
+  "kind": "other",
+  "got_due": "2026-12-31",
+  "evidence": "Friday 6 November to Thursday 31 December 2026",
+  "kind_ok": true,
+  "due_ok": true,
+  "due_within_1": true
+ },
+ {
+  "id": "galway-paul-brady-screenshot",
+  "input": "photo",
+  "expected_due": "2026-11-28",
+  "attempts": 1,
+  "errors": [],
+  "call_secs": 54.6,
+  "total_secs": 54.6,
+  "kind": "event_tickets",
+  "got_due": "2026-11-28",
+  "evidence": "Saturday 28 November 2026",
+  "kind_ok": true,
+  "due_ok": true,
+  "due_within_1": true
+ },
+ {
+  "id": "galway-frank-and-walters-screenshot",
+  "input": "photo",
+  "expected_due": "2026-11-13",
+  "attempts": 1,
+  "errors": [],
+  "call_secs": 54.4,
+  "total_secs": 54.4,
+  "kind": "event_tickets",
+  "got_due": "2026-11-13",
+  "evidence": "Friday 13 November 2026",
+  "kind_ok": true,
+  "due_ok": true,
+  "due_within_1": true
+ }
+]
