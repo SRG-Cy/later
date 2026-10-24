@@ -89,7 +89,8 @@ def create_app(deps: Deps | None = None, per_visitor_daily: int | None = None,
 
     @app.get("/healthz")
     async def healthz() -> dict:
-        return {"ok": True}
+        # The base the push buttons link to: not secret, and the first thing to check when they don't work.
+        return {"ok": True, "public_base_url": os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000")}
 
     @app.get("/me")
     async def me(owner: str = Depends(_visitor)) -> dict:

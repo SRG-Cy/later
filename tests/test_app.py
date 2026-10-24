@@ -232,7 +232,9 @@ def test_total_daily_limit():
     assert TestClient(a.app).post("/capture", data={"text": "3"}).status_code == 429
 
 
-def test_healthz_is_cheap_and_sets_no_cookie():
+def test_healthz_is_cheap_sets_no_cookie_and_shows_link_base(monkeypatch):
+    monkeypatch.setenv("PUBLIC_BASE_URL", "https://later.example")
     client, _ = make(Recorder())
     r = client.get("/healthz")
-    assert r.status_code == 200 and r.json() == {"ok": True} and "set-cookie" not in r.headers
+    assert r.status_code == 200 and "set-cookie" not in r.headers
+    assert r.json() == {"ok": True, "public_base_url": "https://later.example"}
