@@ -1,0 +1,30 @@
+{"id": "penneys-return", "text": "Penneys receipt 20/10/2026. Refunds within 28 days with receipt.", "kinds": ["return_window"], "due": "2026-11-17"}
+{"id": "esb-bill", "text": "ESB Networks bill. Amount due €142.10. Please pay by 05/11/2026.", "kinds": ["bill"], "due": "2026-11-05"}
+{"id": "dentist-6-months", "text": "Dentist said come back for a check-up in 6 months", "kinds": ["appointment"], "due": "2027-04-24"}
+{"id": "hozier-tickets", "text": "Tickets for Hozier at 3Arena go on sale Friday 30 October 2026 at 9am", "kinds": ["event_tickets"], "due": "2026-10-30"}
+{"id": "argos-guarantee", "text": "Argos receipt 18/10/2026 - Kettle. 1 year guarantee.", "kinds": ["warranty"], "due": "2027-10-18"}
+{"id": "nct-due", "text": "Your NCT is due by 15/12/2026. Book your test online.", "kinds": ["deadline", "appointment"], "due": "2026-12-15"}
+{"id": "motor-tax", "text": "Motor tax for 12-D-34567 expires 30/11/2026", "kinds": ["deadline", "bill"], "due": "2026-11-30"}
+{"id": "library-books", "text": "Library books due back 07/11/2026, Pearse Street Library", "kinds": ["deadline", "return_window"], "due": "2026-11-07"}
+{"id": "bord-gais-dd", "text": "Bord Gáis Energy: your direct debit of €88.20 will be taken on 02/11/2026", "kinds": ["bill"], "due": "2026-11-02"}
+{"id": "eir-contract", "text": "Eir broadband contract ends 31/01/2027. Switch or renegotiate before then.", "kinds": ["deadline"], "due": "2027-01-31"}
+{"id": "zalando-100-days", "text": "Zalando order delivered 21/10/2026. Free returns within 100 days of delivery.", "kinds": ["return_window"], "due": "2027-01-29"}
+{"id": "prescription", "text": "GP: repeat prescription is valid for 3 months from 22/10/2026", "kinds": ["deadline", "appointment"], "due": "2027-01-22"}
+{"id": "passport", "text": "My passport expires 14/03/2027", "kinds": ["deadline"], "due": "2027-03-14"}
+{"id": "electric-picnic", "text": "Electric Picnic early bird tickets on sale 6 November 2026 at 10:00", "kinds": ["event_tickets"], "due": "2026-11-06"}
+{"id": "smyths-costume", "text": "Halloween costume from Smyths, bought 24/10/2026, returns within 14 days", "kinds": ["return_window"], "due": "2026-11-07"}
+{"id": "revenue-form11", "text": "Revenue: file your Form 11 tax return by 12/11/2026 (ROS extended date)", "kinds": ["deadline"], "due": "2026-11-12"}
+{"id": "panda-bin", "text": "Panda green bin top-up due 01/11/2026", "kinds": ["bill"], "due": "2026-11-01"}
+{"id": "car-insurance", "text": "Car insurance renewal notice: policy renews 19/11/2026, premium €612", "kinds": ["bill", "deadline"], "due": "2026-11-19"}
+{"id": "mam-birthday", "text": "Mam's birthday is on 3 November 2026, buy a card", "kinds": ["other", "deadline"], "due": "2026-11-03"}
+{"id": "currys-tv", "text": "Currys receipt 10/10/2026: Samsung TV 55in. Manufacturer warranty 2 years.", "kinds": ["warranty"], "due": "2028-10-10"}
+{"id": "vet-booster", "text": "Vet visit today 24/10/2026: Bella's booster vaccine is due again in 12 months", "kinds": ["appointment"], "due": "2027-10-24"}
+{"id": "leap-card", "text": "Leap card student discount expires 31/12/2026", "kinds": ["deadline"], "due": "2026-12-31"}
+{"id": "parking-fine", "text": "Parking fine €40 issued 20/10/2026. Pay within 28 days or it doubles.", "kinds": ["bill", "deadline"], "due": "2026-11-17"}
+{"id": "school-tour", "text": "School tour form and €15 back to Ms Byrne by Friday 30/10/2026", "kinds": ["deadline"], "due": "2026-10-30"}
+{"id": "plumber-no-date", "text": "Call the plumber about the leak sometime", "kinds": ["other", "deadline", "appointment"], "due": null}
+{"id": "ryanair-flight", "text": "Ryanair flight to Malaga on 12/11/2026 at 07:05. Check in online before then.", "kinds": ["deadline", "other", "appointment"], "due": "2026-11-12"}
+{"id": "hairdresser", "text": "Hairdresser appointment Tuesday 03/11/2026 at 14:30", "kinds": ["appointment"], "due": "2026-11-03"}
+{"id": "arnotts-photo", "image": "eval/images/arnotts-receipt.png", "kinds": ["warranty"], "due": "2028-10-21"}
+{"id": "dentist-card-photo", "image": "eval/images/dentist-card.png", "kinds": ["appointment"], "due": "2026-11-18"}
+{"id": "gig-poster-photo", "image": "eval/images/gig-poster.png", "kinds": ["event_tickets"], "due": "2026-11-13"}
