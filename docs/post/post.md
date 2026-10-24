@@ -4,11 +4,11 @@ Return windows, warranty end dates, "come back in six months", the morning ticke
 
 So I built **Later**: you throw something at it, it works out the last sensible day to act, and then it does the most sloth thing possible. It waits. Quietly. For weeks or months. Then it nudges you once.
 
-![Later on a phone: each held item is a ruled slip with its nudge date rubber-stamped in the corner](https://raw.githubusercontent.com/SRG-Cy/later/main/docs/post/slips-light.png)
+![Later on a phone: a timeline of held items grouped into Needs a look, Reading, Today, This week, This month and Later on, with a big Throw something in button at the bottom](https://raw.githubusercontent.com/SRG-Cy/later/main/docs/post/app-light.png)
 
 ## What I Built
 
-Later is a phone-friendly web app with three buttons: **Snap** (a photo of a receipt, letter or poster), **Say** (a voice note, transcribed by ElevenLabs; switched off in the public demo for now) and **Type**.
+Later is a phone-friendly web app with one big button, **Throw something in**. It opens a sheet with three ways in: **Snap** (a photo of a receipt, letter or poster), **Say** (a voice note, transcribed by ElevenLabs; switched off in the public demo for now) and **Type**.
 
 - You capture something and it answers instantly: *"Got it. I'm reading it now, so you can close this page."*
 - In the background, an open-weight model (**Gemma 4 31B**) reads it and reports the facts: what kind of thing it is, the dates it saw, any window like "refunds within 28 days".
@@ -16,15 +16,15 @@ Later is a phone-friendly web app with three buttons: **Snap** (a photo of a rec
 - A **Temporal** workflow sleeps until then. It survives restarts and deploys.
 - You get **one** push on your phone, with **Done** and **Snooze 3 days** buttons. That's the only time Later ever talks to you.
 
-Each item is shown as a library "date due" slip, with the nudge date stamped on it, because that's exactly what Later does.
+Everything Later is holding sits on one timeline, grouped by when you'll hear about it: *Today*, *This week*, *This month*, *Later on*. Anything that needs you (no date found) floats to the top. Tap an item to see the due date and Done / Snooze / Forget.
 
 The lazy part is the whole point: you don't type a calendar entry, you don't work out what "28 days from the 20th" is, and you don't check an app to see what's coming. You throw it in and forget it.
 
 ## Demo
 
-**Try it:** https://later-h5nw.onrender.com (no sign-up). Tap **Type**, paste something like *"Penneys receipt 20/10/2026. Refunds within 28 days"*, and watch the slip go from *reading…* to a stamped date. Open **Get nudges on your phone** to subscribe to your private push topic in the free [ntfy](https://ntfy.sh) app.
+**Try it:** https://later-h5nw.onrender.com (no sign-up). Tap **Throw something in**, then **Type**, paste something like *"Penneys receipt 20/10/2026. Refunds within 28 days"*, and watch it move from *Reading* to *This month*. Open **Get nudges on your phone** to subscribe to your private push topic in the free [ntfy](https://ntfy.sh) app.
 
-<!-- DEMO VIDEO: add a 60-90 s screen recording here (capture -> reading -> stamped slip -> push on phone -> tap Done). -->
+<!-- DEMO VIDEO: add a 60-90 s screen recording here (capture -> Reading -> moves into the timeline -> push on phone -> tap Done). -->
 
 ## Code
 
@@ -70,7 +70,7 @@ That's this week's theme taken literally: the sloth takes its time so you don't 
 
 ### No accounts, still private
 
-The public demo has no sign-up, so each visitor gets an anonymous cookie and only sees their own slips. Each visitor gets a private ntfy topic derived with an HMAC. The push buttons carry a signed per-item token, because the ntfy app has no cookie, and a forged token gets a 404. Daily capture limits protect the free model quota.
+The public demo has no sign-up, so each visitor gets an anonymous cookie and only sees their own items. Each visitor gets a private ntfy topic derived with an HMAC. The push buttons carry a signed per-item token, because the ntfy app has no cookie, and a forged token gets a 404. Daily capture limits protect the free model quota.
 
 ### Deploying
 

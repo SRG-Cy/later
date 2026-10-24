@@ -2,186 +2,238 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F5F7F8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12161C" media="(prefers-color-scheme: dark)">
 <title>Later</title>
 <meta name="description" content="Snap it, say it or type it. Later holds it until the last sensible day, then nudges you once.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  /* Library "date due" slips: card stock, faint rules, a violet rubber-stamped date. */
   :root {
-    --paper: #EEF1EC; --card: #F8FAF7; --ink: #1F2A2E; --soft: #5B6A66;
-    --rule: #C9D3CF; --moss: #3D5F58; --on-moss: #F8FAF7;
-    --stamp: #6A3FB5; --late: #B4233C; --grey-stamp: #7D8B87;
-    --focus: #6A3FB5;
-    --body: "Atkinson Hyperlegible", system-ui, sans-serif;
-    --stamp-face: "Special Elite", "Courier New", monospace;
+    --bg: #F5F7F8; --surface: #FFFFFF; --ink: #1C2230; --soft: #5E6675; --line: #E3E7EB;
+    --moss: #2E6B57; --mint: #E4F1EB; --on-moss: #FFFFFF;
+    --late: #C8343C; --late-tint: #FBE9EA; --amber: #B7791F; --amber-tint: #FBF1DF;
+    --scrim: rgba(18, 22, 28, .38);
+    --radius: 14px;
+    --font: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --paper: #151A19; --card: #1E2523; --ink: #E6ECE9; --soft: #9AA8A3;
-      --rule: #2F3936; --moss: #7FA89D; --on-moss: #102320;
-      --stamp: #A88BEA; --late: #EE7A8C; --grey-stamp: #8C9A96; --focus: #A88BEA;
+      --bg: #12161C; --surface: #1B2028; --ink: #E9ECF1; --soft: #9AA3B2; --line: #2A313C;
+      --moss: #6FC2A3; --mint: #1D3A31; --on-moss: #0E211B;
+      --late: #F0717A; --late-tint: #3A1E22; --amber: #E3B25A; --amber-tint: #3A2F1A;
+      --scrim: rgba(0, 0, 0, .55);
     }
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
-  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.5 var(--body); }
-  main { max-width: 34rem; margin: 0 auto; padding: 28px 16px 56px; }
-  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.45 var(--font); }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--moss); outline-offset: 2px; border-radius: 6px; }
+  main { max-width: 32rem; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 16px 132px; }
 
-  header h1 { margin: 0; font-size: 2.6rem; line-height: 1; font-weight: 700; letter-spacing: -0.02em; }
-  header h1 .sloth { font-size: 2rem; vertical-align: 0.1em; margin-left: 4px; }
-  header p { margin: 10px 0 22px; color: var(--soft); max-width: 30ch; }
-
-  /* Capture: three equal, thumb-sized buttons. */
-  .capture { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .capture button, .capture label {
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-    min-height: 76px; padding: 10px 6px; border-radius: 6px; cursor: pointer;
-    background: var(--moss); color: var(--on-moss); border: 0;
-    font: 700 1rem var(--body);
+  /* Header */
+  header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+  h1 { margin: 6px 0 4px; font-size: 2.2rem; line-height: 1.05; letter-spacing: -0.02em; }
+  #summary { margin: 0; color: var(--soft); max-width: 26ch; }
+  .icon-btn {
+    flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--surface); display: grid; place-items: center; cursor: pointer; font-size: 1.15rem;
   }
-  .capture .icon { font-size: 1.5rem; line-height: 1; }
-  .capture button[aria-pressed="true"] { background: var(--late); }
+
+  /* Timeline groups: iOS-style grouped lists */
+  .group { margin: 0 0 22px; }
+  .group h2 { margin: 0 0 8px 4px; font-size: .95rem; font-weight: 700; color: var(--soft); }
+  .list { background: var(--surface); border-radius: var(--radius); overflow: hidden; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row > button.head {
+    display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: 14px;
+    width: 100%; padding: 12px 14px; border: 0; background: none; text-align: left; cursor: pointer; min-height: 68px;
+  }
+  .chip {
+    width: 48px; height: 48px; border-radius: 12px; background: var(--mint); color: var(--moss);
+    display: grid; place-items: center; align-content: center; line-height: 1;
+  }
+  .chip b { font-size: 1.25rem; }
+  .chip span { font-size: .72rem; margin-top: 2px; }
+  .chip.late { background: var(--late-tint); color: var(--late); }
+  .chip.reading { background: var(--amber-tint); color: var(--amber); }
+  .chip.muted { background: var(--bg); color: var(--soft); }
+  .text { min-width: 0; }
+  .title { display: block; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub { display: block; color: var(--soft); font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub.late { color: var(--late); }
+  .chev { color: var(--soft); transition: transform .2s ease; }
+  .row.open .chev { transform: rotate(90deg); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--amber); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .25; } }
+
+  .detail { display: none; padding: 0 14px 14px 76px; }
+  .row.open .detail { display: block; }
+  .detail p { margin: 0 0 10px; color: var(--soft); font-size: .95rem; }
+  .detail p strong { color: var(--ink); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .actions button {
+    min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--surface); font-weight: 700; font-size: .92rem; cursor: pointer;
+  }
+  .actions button.primary { background: var(--moss); border-color: var(--moss); color: var(--on-moss); }
+  .group.done .row { opacity: .6; }
+
+  .empty { text-align: center; padding: 48px 16px; color: var(--soft); }
+  .empty .big { font-size: 2.6rem; display: block; margin-bottom: 8px; }
+  .empty strong { color: var(--ink); display: block; font-size: 1.1rem; margin-bottom: 4px; }
+
+  /* The one bold thing: a thumb-reachable capture button */
+  .capture-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center;
+    padding: 16px 16px max(16px, env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 60%, transparent);
+    pointer-events: none;
+  }
+  #open-capture {
+    pointer-events: auto; width: 100%; max-width: 30rem; min-height: 58px; border: 0; border-radius: 999px;
+    background: var(--moss); color: var(--on-moss); font-weight: 700; font-size: 1.08rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 8px 24px -10px rgba(46, 107, 87, .7);
+  }
+  #open-capture .plus { font-size: 1.5rem; line-height: 1; margin-top: -2px; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 96px; transform: translate(-50%, 12px); opacity: 0;
+    max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 12px;
+    background: var(--ink); color: var(--bg); font-size: .95rem; transition: opacity .2s, transform .2s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+  #toast.error { background: var(--late); color: #fff; }
+
+  /* Bottom sheets */
+  dialog.sheet {
+    margin: auto auto 0; width: 100%; max-width: 32rem; padding: 10px 16px max(20px, env(safe-area-inset-bottom));
+    border: 0; border-radius: 22px 22px 0 0; background: var(--surface); color: var(--ink);
+  }
+  dialog.sheet::backdrop { background: var(--scrim); }
+  dialog.sheet[open] { animation: up .24s cubic-bezier(.2, .8, .2, 1); }
+  @keyframes up { from { transform: translateY(40px); opacity: .4; } }
+  .grabber { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 14px; }
+  .sheet h3 { margin: 0 0 4px; font-size: 1.25rem; }
+  .sheet .hint { margin: 0 0 16px; color: var(--soft); }
+  .ways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .ways button, .ways label {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 6px; min-height: 96px;
+    border-radius: var(--radius); border: 1px solid var(--line); background: var(--bg); cursor: pointer; font-weight: 700;
+  }
+  .ways .ico { font-size: 1.7rem; line-height: 1; }
+  .ways button[aria-pressed="true"] { border-color: var(--late); color: var(--late); background: var(--late-tint); }
   input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
-  input[type=file]:focus-visible + label { outline: 3px solid var(--focus); outline-offset: 2px; }
-
-  .typebox { margin-top: 10px; }
+  input[type=file]:focus-visible + label { outline: 3px solid var(--moss); outline-offset: 2px; }
+  .typebox { margin-top: 12px; }
   .typebox textarea {
-    width: 100%; min-height: 92px; padding: 12px; border-radius: 6px; resize: vertical;
-    border: 1px solid var(--rule); background: var(--card); color: var(--ink); font: inherit;
+    width: 100%; min-height: 96px; padding: 12px 14px; border-radius: var(--radius); resize: vertical;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit;
   }
-  .typebox button {
-    margin-top: 8px; width: 100%; min-height: 48px; border-radius: 6px; border: 2px solid var(--moss);
-    background: transparent; color: var(--ink); font: 700 1rem var(--body); cursor: pointer;
+  .wide {
+    margin-top: 10px; width: 100%; min-height: 50px; border-radius: 999px; border: 0; cursor: pointer;
+    background: var(--moss); color: var(--on-moss); font-weight: 700;
   }
-  #status { min-height: 1.5em; margin: 12px 0 0; color: var(--soft); }
-  #status.error { color: var(--late); }
+  .ghost { background: none; border: 0; color: var(--soft); width: 100%; min-height: 44px; margin-top: 6px; cursor: pointer; }
+  .steps { margin: 0; padding-left: 1.3em; color: var(--soft); }
+  .steps li { margin: 8px 0; }
+  .steps a { color: var(--moss); font-weight: 700; }
+  .topic { display: flex; align-items: center; gap: 8px; margin-top: 6px; padding: 10px 12px; border-radius: 12px; background: var(--bg); }
+  .topic code { flex: 1; color: var(--ink); overflow-wrap: anywhere; font-size: .95rem; }
+  .topic button { border: 0; background: var(--moss); color: var(--on-moss); border-radius: 999px; padding: 6px 14px; font-weight: 700; cursor: pointer; }
 
-  h2 { margin: 18px 0 12px; font-size: 1.15rem; font-weight: 700; }
-  .empty { color: var(--soft); margin: 0; }
-
-  /* The slip. */
-  .slip {
-    position: relative; margin: 0 0 12px; padding: 10px 16px 14px; border-radius: 3px;
-    background: var(--card); border: 1px solid var(--rule);
-  }
-  /* Text sits on the rules, like writing on a slip: every line is one 32px rule. */
-  .lines {
-    background-image: repeating-linear-gradient(to bottom, transparent 0 31px, var(--rule) 31px 32px);
-  }
-  .lines > * { margin: 0; line-height: 32px; }
-  .slip h3 { font-size: 1.15rem; padding-right: 7.5rem; overflow-wrap: anywhere;
-             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .slip .what { padding-right: 7.5rem; color: var(--soft); }
-  .slip .what:empty { display: none; }
-  .slip .what:empty + .when { padding-right: 7.5rem; }
-  .slip .when strong { font-weight: 700; }
-  .slip.closed { opacity: .55; }
-  .slip .actions { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
-  .slip .actions button {
-    min-height: 44px; padding: 0 14px; border-radius: 6px; cursor: pointer;
-    border: 1px solid var(--rule); background: var(--card); color: var(--ink); font: 700 .95rem var(--body);
-  }
-  .slip .actions button.primary { border-color: var(--moss); color: var(--moss); }
-
-  /* The one bold thing: a rubber-stamped date. */
-  .stamp {
-    position: absolute; top: 10px; right: 12px; width: 6.6rem; padding: 6px 4px 4px;
-    font-family: var(--stamp-face); text-align: center; line-height: 1.05; color: var(--stamp);
-    border: 2.5px solid currentColor; border-radius: 6px; transform: rotate(-7deg);
-    mix-blend-mode: multiply; opacity: .9;
-  }
-  @media (prefers-color-scheme: dark) { .stamp { mix-blend-mode: normal; } }
-  .stamp .day { display: block; font-size: 1.55rem; }
-  .stamp .small { display: block; font-size: .8rem; }
-  .stamp.late { color: var(--late); }
-  .stamp.grey { color: var(--grey-stamp); border-style: dashed; }
-  .stamp.done { color: var(--stamp); transform: rotate(-14deg); }
-  .stamp.thunk { animation: thunk .42s cubic-bezier(.2, 1.6, .4, 1) both; }
-  @keyframes thunk {
-    from { transform: rotate(-2deg) scale(1.6); opacity: 0; }
-    to { transform: rotate(-7deg) scale(1); opacity: .9; }
-  }
-  @media (prefers-reduced-motion: reduce) { .stamp.thunk { animation: none; } }
-
-  /* One-time setup, folded away. */
-  details { margin-top: 30px; border-top: 1px solid var(--rule); padding-top: 14px; color: var(--soft); }
-  summary { cursor: pointer; color: var(--ink); font-weight: 700; min-height: 32px; }
-  details ol { margin: 8px 0 0; padding-left: 1.3em; }
-  details li { margin: 4px 0; }
-  details a { color: var(--ink); }
-  .topic { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
-  .topic code { color: var(--ink); font-size: .95rem; overflow-wrap: anywhere; }
-  .topic button {
-    min-height: 36px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--rule);
-    background: var(--card); color: var(--ink); font: 700 .9rem var(--body); cursor: pointer;
-  }
-  @media (max-width: 360px) {
-    .slip h3, .slip .what, .slip .what:empty + .when { padding-right: 0; }
-    .stamp { position: static; display: inline-block; margin-bottom: 8px; transform: rotate(-4deg); }
+  @media (prefers-reduced-motion: reduce) {
+    *, dialog.sheet[open] { animation: none !important; transition: none !important; }
   }
 </style>
 </head>
 <body>
 <main>
   <header>
-    <h1>Later<span class="sloth" aria-hidden="true">🦥</span></h1>
-    <p>Throw it in. I'll hold it until the last sensible day, then nudge you once.</p>
+    <div>
+      <h1>Later</h1>
+      <p id="summary">Throw anything in. I'll nudge you on the last sensible day.</p>
+    </div>
+    <button class="icon-btn" id="open-setup" type="button" aria-label="Get nudges on your phone">🔔</button>
   </header>
 
-  <div class="capture">
+  <div id="timeline"></div>
+</main>
+
+<div class="capture-bar">
+  <button id="open-capture" type="button"><span class="plus" aria-hidden="true">+</span> Throw something in</button>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<dialog class="sheet" id="capture-sheet" aria-labelledby="capture-title">
+  <div class="grabber" aria-hidden="true"></div>
+  <h3 id="capture-title">What should I hold?</h3>
+  <p class="hint">A receipt, a letter, a poster, a voice note. I'll find the date.</p>
+  <div class="ways">
     <input type="file" id="photo" accept="image/*" capture="environment">
-    <label for="photo"><span class="icon" aria-hidden="true">📷</span>Snap</label>
-    <button id="say" type="button" aria-pressed="false"><span class="icon" aria-hidden="true">🎙</span><span id="saylabel">Say</span></button>
-    <button id="type" type="button" aria-expanded="false" aria-controls="typebox"><span class="icon" aria-hidden="true">✍️</span>Type</button>
+    <label for="photo"><span class="ico" aria-hidden="true">📷</span>Snap</label>
+    <button id="say" type="button" aria-pressed="false"><span class="ico" aria-hidden="true">🎙</span><span id="saylabel">Say</span></button>
+    <button id="type" type="button" aria-expanded="false" aria-controls="typebox"><span class="ico" aria-hidden="true">✍️</span>Type</button>
   </div>
   <div class="typebox" id="typebox" hidden>
     <textarea id="text" aria-label="What should Later hold?" placeholder="Dentist said come back in 6 months"></textarea>
-    <button id="sendtext" type="button">Hold this</button>
+    <button class="wide" id="sendtext" type="button">Hold this</button>
   </div>
-  <p id="status" role="status" aria-live="polite"></p>
+  <button class="ghost" type="button" data-close>Cancel</button>
+</dialog>
 
-  <h2>Holding for you</h2>
-  <div id="items"><p class="empty">Nothing yet. Snap a receipt, a poster or a letter, and I'll find the date.</p></div>
+<dialog class="sheet" id="setup-sheet" aria-labelledby="setup-title">
+  <div class="grabber" aria-hidden="true"></div>
+  <h3 id="setup-title">Get nudges on your phone</h3>
+  <ol class="steps">
+    <li>Install the free <a href="https://ntfy.sh/app" target="_blank" rel="noopener">ntfy app</a>.</li>
+    <li>Subscribe to your private topic:
+      <div class="topic"><code id="topic">…</code><button id="copy" type="button">Copy</button></div>
+    </li>
+    <li>Keep it to yourself. Anyone with the topic can read your nudges.</li>
+  </ol>
+  <button class="ghost" type="button" data-close>Done</button>
+</dialog>
 
-  <details>
-    <summary>Get nudges on your phone</summary>
-    <ol>
-      <li>Install the free <a href="https://ntfy.sh/app" target="_blank" rel="noopener">ntfy app</a>.</li>
-      <li>Subscribe to your private topic:
-        <span class="topic"><code id="topic">…</code><button id="copy" type="button">Copy</button></span>
-      </li>
-      <li>Keep it to yourself: anyone with the topic can read your nudges.</li>
-    </ol>
-  </details>
-</main>
 <script>
 const $ = (id) => document.getElementById(id);
-const DUBLIN = "Europe/Dublin";
-const fmt = (iso, opts) => new Date(iso).toLocaleString("en-IE", { timeZone: DUBLIN, ...opts });
+const TZ = "Europe/Dublin";
+const fmt = (iso, o) => new Date(iso).toLocaleString("en-IE", { timeZone: TZ, ...o });
 const longDay = (iso) => fmt(iso, { weekday: "short", day: "numeric", month: "short" });
 const clock = (iso) => fmt(iso, { hour: "2-digit", minute: "2-digit" });
-const stampDay = (iso) => fmt(iso, { day: "numeric", month: "short" }).toUpperCase();
-const stampYear = (iso) => fmt(iso, { year: "numeric" });
+const dayKey = (d) => new Date(d).toLocaleDateString("en-CA", { timeZone: TZ });  // YYYY-MM-DD in Dublin
+const daysFromToday = (iso) => Math.round((Date.parse(dayKey(iso)) - Date.parse(dayKey(Date.now()))) / 86400000);
 
-function say(text, isError = false) {
-  $("status").textContent = text;
-  $("status").classList.toggle("error", isError);
+let toastTimer;
+function toast(text, isError = false) {
+  const t = $("toast"); t.textContent = text; t.classList.toggle("error", isError); t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 3600);
 }
 
+// Sheets
+const sheets = { capture: $("capture-sheet"), setup: $("setup-sheet") };
+$("open-capture").onclick = () => sheets.capture.showModal();
+$("open-setup").onclick = () => sheets.setup.showModal();
+for (const d of Object.values(sheets)) {
+  d.addEventListener("click", (e) => { if (e.target === d || e.target.hasAttribute("data-close")) d.close(); });
+}
+sheets.capture.addEventListener("close", () => { $("typebox").hidden = true; $("type").setAttribute("aria-expanded", "false"); });
+
 async function send(form, label) {
-  say(label);
+  sheets.capture.close();
+  toast(label);
   try {
     const r = await fetch("/capture", { method: "POST", body: form });
     if (!r.ok) throw new Error((await r.json()).detail || `error ${r.status}`);
     const it = await r.json();
-    if (it.status === "failed") say("Couldn't save that. Try again in a minute.", true);
-    else say("Got it. I'm reading it now, so you can close this page.");
+    if (it.status === "failed") toast("Couldn't save that. Try again in a minute.", true);
+    else toast("Got it. I'm reading it now.");
     load();
-  } catch (e) { say(e.message, true); }
+  } catch (e) { toast(e.message, true); }
 }
 
 // Phone photos are 3-5 MB; the model only needs ~1600 px.
@@ -193,7 +245,6 @@ async function shrink(file, max = 1600) {
   c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
   return new Promise((ok) => c.toBlob(ok, "image/jpeg", 0.85));
 }
-
 $("photo").onchange = async (e) => {
   const file = e.target.files[0]; e.target.value = "";
   if (!file) return;
@@ -201,19 +252,17 @@ $("photo").onchange = async (e) => {
   try { f.append("image", await shrink(file), "photo.jpg"); } catch { f.append("image", file); }
   send(f, "Saving your photo…");
 };
-
 $("type").onclick = () => {
-  const box = $("typebox"), open = box.hidden;
-  box.hidden = !open; $("type").setAttribute("aria-expanded", String(open));
+  const open = $("typebox").hidden;
+  $("typebox").hidden = !open; $("type").setAttribute("aria-expanded", String(open));
   if (open) $("text").focus();
 };
 $("sendtext").onclick = () => {
   const text = $("text").value.trim();
-  if (!text) { say("Type what you want me to hold first.", true); $("text").focus(); return; }
+  if (!text) { toast("Type what you want me to hold first.", true); $("text").focus(); return; }
   const f = new FormData(); f.append("text", text); $("text").value = "";
   send(f, "Saving…");
 };
-
 let rec, chunks = [];
 $("say").onclick = async () => {
   if (rec && rec.state === "recording") { rec.stop(); return; }
@@ -227,83 +276,146 @@ $("say").onclick = async () => {
       const f = new FormData(); f.append("audio", new Blob(chunks, { type: rec.mimeType }), "voice.webm");
       send(f, "Listening back…");
     };
-    rec.start();
-    $("say").setAttribute("aria-pressed", "true"); $("saylabel").textContent = "Stop";
-    say("Recording. Tap Stop when you're done.");
-  } catch { say("No microphone available. Try Type instead.", true); }
-}
+    rec.start(); $("say").setAttribute("aria-pressed", "true"); $("saylabel").textContent = "Stop";
+  } catch { toast("No microphone available. Try Type instead.", true); }
+};
 
-async function act(id, path) {
+async function act(id, path, done) {
   const r = await fetch(`/items/${id}/${path}`, { method: "POST" });
-  if (!r.ok) say("That didn't work. Refresh and try again.", true);
+  if (!r.ok) toast("That didn't work. Refresh and try again.", true); else toast(done);
   load();
 }
 
-function stampFor(it) {
-  const s = document.createElement("div");
-  s.className = "stamp";
-  if (it.status === "reading") { s.classList.add("grey"); s.innerHTML = '<span class="day">…</span><span class="small">reading</span>'; }
-  else if (it.status === "failed") { s.classList.add("late"); s.innerHTML = '<span class="day">TRY</span><span class="small">again</span>'; }
-  else if (it.status === "needs_info") { s.classList.add("grey"); s.innerHTML = '<span class="day">NO</span><span class="small">date found</span>'; }
-  else if (it.status === "done") { s.classList.add("done"); s.innerHTML = '<span class="day">DONE</span>'; }
+// Timeline
+function groupOf(it) {
+  if (it.status === "done") return "done";
+  if (it.status === "reading") return "reading";
+  if (it.status === "needs_info" || it.status === "failed") return "attention";
+  const d = daysFromToday(it.resolved.remind_at);
+  if (it.resolved.late || d <= 0) return "today";
+  if (d <= 7) return "week";
+  if (d <= 31) return "month";
+  return "later";
+}
+const GROUPS = [
+  ["attention", "Needs a look"], ["reading", "Reading"], ["today", "Today"],
+  ["week", "This week"], ["month", "This month"], ["later", "Later on"], ["done", "Done"],
+];
+
+function chip(it) {
+  const c = document.createElement("div"); c.className = "chip"; c.setAttribute("aria-hidden", "true");
+  if (it.status === "reading") { c.classList.add("reading"); c.innerHTML = '<span class="dot"></span>'; }
+  else if (it.status === "needs_info") { c.classList.add("muted"); c.innerHTML = "<b>?</b>"; }
+  else if (it.status === "failed") { c.classList.add("late"); c.innerHTML = "<b>!</b>"; }
   else {
-    if (it.resolved.late) s.classList.add("late");
-    s.innerHTML = `<span class="day">${stampDay(it.resolved.remind_at)}</span><span class="small">${stampYear(it.resolved.remind_at)}</span>`;
+    const at = it.resolved.remind_at;
+    if (groupOf(it) === "today" && it.status !== "done") c.classList.add("late");
+    if (it.status === "done") c.classList.add("muted");
+    c.innerHTML = `<b>${fmt(at, { day: "numeric" })}</b><span>${fmt(at, { month: "short" })}</span>`;
   }
-  return s;
+  return c;
 }
 
-function whenText(it) {
+function subline(it) {
   switch (it.status) {
-    case "reading": return "Reading it now. This can take a minute.";
-    case "failed": return "I couldn't read this. Capture it again later.";
-    case "needs_info": return "I couldn't find a date. Capture it again with the date in it.";
-    case "done": return `Done. It was due ${longDay(it.resolved.due_at)}.`;
-    default: {
-      const r = it.resolved;
-      const nudge = it.status === "reminded" ? "Nudged you" : r.late ? "Nudging you now" : `Nudge on <strong>${longDay(r.remind_at)}, ${clock(r.remind_at)}</strong>`;
-      return `${nudge}<br>Due ${longDay(r.due_at)}`;
-    }
+    case "reading": return ["Reading it now. This can take a minute.", ""];
+    case "failed": return ["Couldn't read this. Capture it again later.", "late"];
+    case "needs_info": return ["No date found. Capture it again with the date in it.", ""];
+    case "done": return [`Done. It was due ${longDay(it.resolved.due_at)}.`, ""];
+    case "reminded": return ["Nudged you.", ""];
   }
+  const d = daysFromToday(it.resolved.remind_at);
+  if (it.resolved.late || d <= 0) return [`Nudge today at ${clock(it.resolved.remind_at)}`, "late"];
+  if (d === 1) return [`Nudge tomorrow at ${clock(it.resolved.remind_at)}`, ""];
+  if (d <= 45) return [`Nudge in ${d} days`, ""];
+  const thisYear = fmt(Date.now(), { year: "numeric" }) === fmt(it.resolved.remind_at, { year: "numeric" });
+  return [`Nudge on ${fmt(it.resolved.remind_at, { weekday: "short", day: "numeric", month: "short", ...(thisYear ? {} : { year: "numeric" }) })}`, ""];
 }
 
-const seen = new Map();  // id -> last status, so a stamp only thunks when reading finishes
+const openRows = new Set();
+
+function row(it) {
+  const r = document.createElement("div"); r.className = "row";
+  if (openRows.has(it.id)) r.classList.add("open");
+  const head = document.createElement("button"); head.type = "button"; head.className = "head";
+  const detailId = `d-${it.id}`;
+  head.setAttribute("aria-expanded", String(openRows.has(it.id))); head.setAttribute("aria-controls", detailId);
+  const text = document.createElement("span"); text.className = "text";
+  const title = document.createElement("span"); title.className = "title";
+  const raw = it.raw_text ? it.raw_text.slice(0, 60) : "Photo";
+  title.textContent = it.facts ? it.facts.title : raw.charAt(0).toUpperCase() + raw.slice(1);
+  const [subText, subClass] = subline(it);
+  const sub = document.createElement("span"); sub.className = "sub " + subClass; sub.textContent = subText;
+  text.append(title, sub);
+  head.setAttribute("aria-label", `${title.textContent}. ${subText}`);
+  const chev = document.createElement("span"); chev.className = "chev"; chev.setAttribute("aria-hidden", "true"); chev.textContent = "›";
+  head.append(chip(it), text, chev);
+  head.onclick = () => {
+    const open = !r.classList.contains("open");
+    r.classList.toggle("open", open); head.setAttribute("aria-expanded", String(open));
+    open ? openRows.add(it.id) : openRows.delete(it.id);
+  };
+
+  const detail = document.createElement("div"); detail.className = "detail"; detail.id = detailId;
+  const p = document.createElement("p");
+  if (it.facts) p.textContent = it.facts.action;
+  if (it.resolved) {
+    p.append(document.createElement("br"));
+    const due = document.createElement("strong"); due.textContent = `Due ${longDay(it.resolved.due_at)}`;
+    p.append(due, `. Nudge ${longDay(it.resolved.remind_at)}, ${clock(it.resolved.remind_at)}.`);
+  }
+  if (p.textContent) detail.append(p);
+  const open = ["scheduled", "snoozed", "reminded"].includes(it.status);
+  const buttons = open ? [["Done", "done", "Marked as done.", true], ["Snooze 3 days", "snooze?days=3", "Snoozed for 3 days."], ["Forget", "cancel", "Forgotten."]]
+    : it.status !== "done" ? [["Forget", "cancel", "Forgotten."]] : [];
+  if (buttons.length) {
+    const a = document.createElement("div"); a.className = "actions";
+    for (const [label, path, msg, primary] of buttons) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = label;
+      if (primary) b.className = "primary";
+      b.onclick = () => act(it.id, path, msg); a.append(b);
+    }
+    detail.append(a);
+  }
+  r.append(head, detail);
+  return r;
+}
+
+function whenWords(iso) {
+  const d = daysFromToday(iso);
+  if (d <= 0) return "today";
+  if (d === 1) return "tomorrow";
+  if (d < 7) return fmt(iso, { weekday: "long" });
+  return longDay(iso);
+}
+
+function summary(items) {
+  if (!items.length) return "Throw anything in. I'll nudge you on the last sensible day.";
+  const live = items.filter((it) => ["scheduled", "snoozed"].includes(it.status));
+  if (!live.length) return "Nothing waiting right now.";
+  const next = live.map((it) => it.resolved.remind_at).sort()[0];
+  return `Holding ${live.length} thing${live.length === 1 ? "" : "s"}. Next nudge ${whenWords(next)}.`;
+}
 
 async function load() {
   let items;
   try { items = await (await fetch("/items")).json(); } catch { return; }
   items = items.filter((it) => it.status !== "cancelled");
-  const list = $("items");
+  $("summary").textContent = summary(items);
+  const tl = $("timeline");
   if (!items.length) {
-    list.innerHTML = '<p class="empty">Nothing yet. Snap a receipt, a poster or a letter, and I\'ll find the date.</p>';
+    tl.innerHTML = '<div class="empty"><span class="big" aria-hidden="true">🦥</span><strong>Nothing to remember yet</strong>Tap the button below and throw in a receipt, a letter or a poster.</div>';
   } else {
-    list.replaceChildren(...items.map((it) => {
-      const el = document.createElement("article");
-      el.className = "slip" + (it.status === "done" ? " closed" : "");
-      const h = document.createElement("h3");
-      h.textContent = it.facts ? it.facts.title : (it.raw_text ? it.raw_text.slice(0, 60) : "Photo");
-      const what = document.createElement("p"); what.className = "what";
-      what.textContent = it.facts ? it.facts.action : "";
-      const when = document.createElement("p"); when.className = "when"; when.innerHTML = whenText(it);
-      const stamp = stampFor(it);
-      if (seen.get(it.id) === "reading" && it.status !== "reading") stamp.classList.add("thunk");
-      seen.set(it.id, it.status);
-      const lines = document.createElement("div"); lines.className = "lines";
-      lines.append(h, what, when);
-      el.append(lines, stamp);
-      const open = ["scheduled", "snoozed", "reminded"].includes(it.status);
-      const buttons = open ? [["Done", "done", true], ["Snooze 3 days", "snooze?days=3"], ["Forget", "cancel"]]
-        : it.status !== "done" ? [["Forget", "cancel"]] : [];
-      if (buttons.length) {
-        const row = document.createElement("div"); row.className = "actions";
-        for (const [label, path, primary] of buttons) {
-          const b = document.createElement("button"); b.type = "button"; b.textContent = label;
-          if (primary) b.className = "primary";
-          b.onclick = () => act(it.id, path); row.append(b);
-        }
-        el.append(row);
-      }
-      return el;
+    const sorted = [...items].sort((a, b) => (a.resolved?.remind_at || "").localeCompare(b.resolved?.remind_at || ""));
+    tl.replaceChildren(...GROUPS.flatMap(([key, label]) => {
+      const inGroup = sorted.filter((it) => groupOf(it) === key);
+      if (!inGroup.length) return [];
+      const g = document.createElement("section"); g.className = `group ${key}`;
+      const h = document.createElement("h2"); h.textContent = label;
+      const list = document.createElement("div"); list.className = "list";
+      list.append(...inGroup.map(row));
+      g.append(h, list);
+      return [g];
     }));
   }
   clearTimeout(load.timer);

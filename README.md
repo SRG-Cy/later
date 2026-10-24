@@ -4,7 +4,7 @@ Snap it, say it or type it. Later works out what you'll need to do and the last 
 
 **Live:** https://later-h5nw.onrender.com · Built for the Hacktoberfest 2026 Open-Source AI Challenge, Week 3: Slow and Steady.
 
-<img src="docs/post/slips-light.png" alt="Later on a phone: held items as ruled slips with rubber-stamped nudge dates" width="320">
+<img src="docs/post/app-light.png" alt="Later on a phone: a timeline of held items grouped by when you will be nudged, with a big Throw something in button" width="320">
 
 ## How it works
 
