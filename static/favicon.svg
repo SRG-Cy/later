@@ -2,8 +2,7 @@
   <title>Later</title>
   <!-- App tile -->
   <rect width="512" height="512" rx="116" fill="#2E6B57"/>
-  <!-- Clock face -->
-  <circle cx="256" cy="256" r="160" fill="none" stroke="#E4F1EB" stroke-width="22" opacity=".55"/>
-  <!-- The hands form an L: a tall minute hand and a short hour hand, meeting at the centre -->
-  <path d="M232 268 V132 M232 268 H330" fill="none" stroke="#FFFFFF" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- A cursive l drawn as the string you tie round a finger to remember -->
+  <path d="M120 378 C190 378 250 336 284 268 C318 200 314 126 268 124 C222 122 206 202 226 288 C240 350 268 386 310 386 C352 386 380 358 396 326"
+        fill="none" stroke="#FFFFFF" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

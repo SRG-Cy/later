@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Later">
   <title>Later</title>
-  <!-- Mark without the tile, for use on coloured or light backgrounds; inherits currentColor -->
-  <circle cx="256" cy="256" r="200" fill="none" stroke="currentColor" stroke-width="44" opacity=".35"/>
-  <path d="M256 256 V110 M256 256 H384" fill="none" stroke="currentColor" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- The string-l without the tile; takes the surrounding text colour -->
+  <path d="M96 400 C176 400 244 352 283 274 C322 196 318 110 265 108 C212 106 194 198 217 296 C233 368 265 410 313 410 C361 410 393 378 411 341"
+        fill="none" stroke="currentColor" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
