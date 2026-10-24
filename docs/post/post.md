@@ -28,7 +28,9 @@ The lazy part is the whole point: you don't type a calendar entry, you don't wor
 
 ## Code
 
-{% embed https://github.com/SRG-Cy/later %}
+**[github.com/SRG-Cy/later](https://github.com/SRG-Cy/later)**
+
+<!-- Once the repo is public, you can replace the link above with: {% embed https://github.com/SRG-Cy/later %} -->
 
 MIT licensed, with 112 tests. Temporal workflows are tested with Temporal's time-skipping test server, so "wait 30 days" runs in a second.
 
