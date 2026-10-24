@@ -75,4 +75,4 @@ Timezone: `Europe/Dublin`. Default reminder time of day: 09:00 local.
   (privacy), no lock-in to one vendor's API or pricing, and swapping
   provider or model is one env var.
 - What went wrong section. Screenshots: Temporal timeline, Sentry trace,
-  Render logs, DO usage.
+  Render logs, Google AI Studio usage.
