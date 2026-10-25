@@ -30,7 +30,7 @@ The lazy part is the whole point: you don't type a calendar entry, you don't wor
 
 {% embed https://github.com/SRG-Cy/later %}
 
-MIT licensed, with 112 tests. Temporal workflows are tested with Temporal's time-skipping test server, so "wait 30 days" runs in a second.
+MIT licensed, with 113 tests. Temporal workflows are tested with Temporal's time-skipping test server, so "wait 30 days" runs in a second.
 
 ## How I Built It
 
@@ -53,7 +53,7 @@ LLMs are not reliable at date arithmetic ([there's data on this](https://dev.to/
  "window_days": 28, "evidence": "Refunds within 28 days with receipt"}
 ```
 
-Then `resolve()` does the rest in plain Python: month ends (31 Aug + 6 months = 28 Feb), Irish dates (day/month), and the clock change. Ireland's clocks went back on Sunday 25 October, right in the middle of this challenge, and 09:00 nudges stay at 09:00 local.
+Then `resolve()` does the rest in plain Python: month ends (31 Aug + 6 months = 28 Feb), Irish dates (day/month), and the clock change. Ireland's clocks went back on Sunday 25 October, the last day of this challenge, and 09:00 nudges stay at 09:00 local.
 
 ### Reading slowly on purpose
 
@@ -127,7 +127,7 @@ Capturing takes one tap and a photo, a few seconds. After that the effort is zer
 - **Best Use of Temporal:** one durable workflow per item. It reads in the background with patient retries (recovering from a 35% failure rate with 0 lost captures), sleeps for days or months until the nudge, and handles Done/Snooze signals. Tested with the time-skipping test server.
 - **Best Use of ElevenLabs:** the **Say** button. ElevenLabs speech-to-text (`scribe_v2`) turns a voice note into text in about 2 seconds, and Gemma reads the transcript like anything typed. Live test: *"Dentist said come back for a checkup in six months"* was transcribed word for word and scheduled for 25 April 2027. If transcription fails, the person gets a clear message instead of a lost capture.
 - **Best Use of MongoDB Atlas:** stores every item and photo, with per-visitor queries and daily limit counts.
-- **Best Use of Render:** one Docker web service from a `render.yaml` Blueprint runs Temporal, the worker and the app, with a persistent disk for Temporal's state. Push links use Render's own `RENDER_EXTERNAL_URL`.
+- **Best Use of Render:** one Docker web service from a `render.yaml` Blueprint runs Temporal, the worker and the app, with a persistent disk for Temporal's state. Push links fall back to Render's own `RENDER_EXTERNAL_URL`, so they work without extra setup.
 
 ---
 

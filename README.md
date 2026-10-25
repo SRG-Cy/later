@@ -44,7 +44,7 @@ cp .env.example .env                # fill in LLM_API_KEY, MONGODB_URI, LATER_SE
 temporal server start-dev           # in one terminal
 python -m later.worker              # in another
 uvicorn later.app:app --port 8000   # and the web app
-pytest                              # 112 tests; Temporal tests use the time-skipping test server
+pytest                              # 113 tests; Temporal tests use the time-skipping test server
 ```
 
 Any OpenAI-compatible endpoint works: set `LLM_BASE_URL` and `LLM_MODEL`. Deploy: `render.yaml` runs Temporal, the worker and the app in one container with a persistent disk.
