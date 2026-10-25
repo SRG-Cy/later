@@ -8,7 +8,7 @@ So I built **Later**: you throw something at it, it works out the last sensible 
 
 ## What I Built
 
-Later is a phone-friendly web app with one big button, **Throw something in**. It opens a sheet with three ways in: **Snap** (a photo of a receipt, letter or poster), **Say** (a voice note, transcribed by ElevenLabs; switched off in the public demo for now) and **Type**.
+Later is a phone-friendly web app with one big button, **Throw something in**. It opens a sheet with three ways in: **Snap** (a photo of a receipt, letter or poster), **Say** (a voice note, transcribed by ElevenLabs) and **Type**.
 
 - You capture something and it answers instantly: *"Got it. I'm reading it now, so you can close this page."*
 - In the background, an open-weight model (**Gemma 4 31B**) reads it and reports the facts: what kind of thing it is, the dates it saw, any window like "refunds within 28 days".
@@ -125,6 +125,7 @@ Capturing takes one tap and a photo, a few seconds. After that the effort is zer
 
 - **Best Use of Gemma:** Gemma 4 31B reads every capture, text and photos, and returns structured facts. It's evaluated on 35 captures, with 35/35 due dates correct.
 - **Best Use of Temporal:** one durable workflow per item. It reads in the background with patient retries (recovering from a 35% failure rate with 0 lost captures), sleeps for days or months until the nudge, and handles Done/Snooze signals. Tested with the time-skipping test server.
+- **Best Use of ElevenLabs:** the **Say** button. ElevenLabs speech-to-text (`scribe_v2`) turns a voice note into text in about 2 seconds, and Gemma reads the transcript like anything typed. Live test: *"Dentist said come back for a checkup in six months"* was transcribed word for word and scheduled for 25 April 2027. If transcription fails, the person gets a clear message instead of a lost capture.
 - **Best Use of MongoDB Atlas:** stores every item and photo, with per-visitor queries and daily limit counts.
 - **Best Use of Render:** one Docker web service from a `render.yaml` Blueprint runs Temporal, the worker and the app, with a persistent disk for Temporal's state. Push links use Render's own `RENDER_EXTERNAL_URL`.
 

@@ -51,6 +51,6 @@ Any OpenAI-compatible endpoint works: set `LLM_BASE_URL` and `LLM_MODEL`. Deploy
 
 ## Stack
 
-Gemma 4 (open weights) · Temporal · MongoDB Atlas · Render · FastAPI · ntfy · optional: ElevenLabs speech-to-text, SerpApi return-policy lookup, Sentry tracing.
+Gemma 4 (open weights) · Temporal · MongoDB Atlas · Render · ElevenLabs speech-to-text · FastAPI · ntfy · optional: SerpApi return-policy lookup, Sentry tracing.
 
 MIT licensed.
